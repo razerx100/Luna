@@ -1,5 +1,4 @@
 #include <WinWindow.hpp>
-#include <resource.hpp>
 #include <WindowThrowMacros.hpp>
 #include <PipelineManager.hpp>
 
@@ -22,12 +21,12 @@ WinWindow::WindowClass::WindowClass() noexcept
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = GetInstance();
-	wc.hIcon = LoadIcon(GetInstance(), MAKEINTRESOURCE(IDI_ICON));
+	wc.hIcon = nullptr;
 	wc.hCursor = nullptr;
 	wc.hbrBackground = nullptr;
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = GetName();
-	wc.hIconSm = static_cast<HICON>(LoadImage(GetInstance(), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 16, 16, 0));
+	wc.hIconSm = nullptr;
 
 	RegisterClassEx(&wc);
 }
@@ -471,4 +470,10 @@ bool WinWindow::IsCursorEnabled() const noexcept {
 
 void* WinWindow::GetWindowHandle() const noexcept {
 	return reinterpret_cast<void*>(m_hWnd);
+}
+
+void WinWindow::SetIcon(std::uint16_t iconHandle) {
+	HICON hIcon = LoadIconA(WindowClass::GetInstance(), MAKEINTRESOURCE(iconHandle));
+	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 }

@@ -20,7 +20,6 @@ endif()
 
 add_library(${PROJECT_NAME} STATIC
     ${SRC}
-    resources/resource.rc
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE includes/ includes/Graphics/ includes/Exceptions/ templates/)
