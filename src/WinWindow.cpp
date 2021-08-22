@@ -1,6 +1,7 @@
 #include <WinWindow.hpp>
 #include <resource.hpp>
 #include <WindowThrowMacros.hpp>
+#include <PipelineManager.hpp>
 
 #ifdef _IMGUI
 #include <imgui_impl_win32.h>
@@ -149,6 +150,9 @@ LRESULT WinWindow::HandleMsg(
 
 		m_width = clientRect.right - clientRect.left;
 		m_height = clientRect.bottom - clientRect.top;
+
+		if (PipelineManager::GetRef())
+			PipelineManager::GetRef()->Resize(m_width, m_height);
 
 		if(!m_cursorEnabled)
 			ConfineCursor();
@@ -397,8 +401,12 @@ void WinWindow::ToggleFullScreenMode() {
 				WS_SYSMENU)
 		);
 
-		// Need a fix here before using
-		RECT fullscreenWindowRect; //= m_pGfx->GetOutputDesc().DesktopCoordinates;
+		RECT fullscreenWindowRect = {};
+
+		if (PipelineManager::GetRef()) {
+			SRect sRect = PipelineManager::GetRef()->GetRenderAreaRECT();
+			fullscreenWindowRect = *reinterpret_cast<RECT*>(&sRect);
+		}
 
 		SetWindowPos(
 			m_hWnd,
