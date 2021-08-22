@@ -9,13 +9,8 @@ class Window {
 public:
 	virtual ~Window() = default;
 
-	inline static void Init(std::unique_ptr<Window> instance) {
-		s_instance = std::move(instance);
-	}
-
-	inline static Window* GetRef() noexcept {
-		return s_instance.get();
-	}
+	static void Init(std::unique_ptr<Window> instance);
+	static Window* GetRef() noexcept;
 
 	virtual void SetTitle(const std::string& title) = 0;
 	virtual std::optional<int> Update() = 0;

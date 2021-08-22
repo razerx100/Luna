@@ -94,7 +94,6 @@ WinWindow::~WinWindow() {
 #ifdef _IMGUI
 	ImGui_ImplWin32_Shutdown();
 #endif
-	DestroyWindow(m_hWnd);
 }
 
 LRESULT CALLBACK WinWindow::HandleMsgSetup(
@@ -135,6 +134,10 @@ LRESULT WinWindow::HandleMsg(
 
 	switch (msg) {
 	case WM_CLOSE: {
+		DestroyWindow(m_hWnd);
+		return 0;
+	}
+	case WM_DESTROY: {
 		PostQuitMessage(0);
 		return 0;
 	}

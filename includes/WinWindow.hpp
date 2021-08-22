@@ -20,7 +20,7 @@ private:
 		~WindowClass();
 		WindowClass(const WindowClass&) = delete;
 		WindowClass& operator=(const WindowClass&) = delete;
-		static constexpr const char* wndClassName = "Direct3D Engine Window";
+		static constexpr const char* wndClassName = "Luna";
 		static WindowClass s_wndClass;
 		HINSTANCE m_hInst;
 	};
@@ -28,8 +28,8 @@ private:
 public:
 	WinWindow(int width, int height, const char* name);
 	~WinWindow();
-	WinWindow(const WinWindow&) = delete;
 
+	WinWindow(const WinWindow&) = delete;
 	WinWindow& operator=(const WinWindow&) = delete;
 
 	void SetTitle(const std::string& title) override;
