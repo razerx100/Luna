@@ -1,6 +1,7 @@
 #include <WinWindow.hpp>
 #include <WindowThrowMacros.hpp>
 #include <PipelineManager.hpp>
+#include <filesystem>
 
 #ifdef _IMGUI
 #include <imgui_impl_win32.h>
@@ -475,8 +476,14 @@ void* WinWindow::GetWindowHandle() const noexcept {
 	return reinterpret_cast<void*>(m_hWnd);
 }
 
-void WinWindow::SetIcon(std::uint16_t iconHandle) {
-	HICON hIcon = LoadIconA(WindowClass::GetInstance(), MAKEINTRESOURCE(iconHandle));
+void WinWindow::SetIcon(const std::string& imagePath) {
+	std::string relativePath = std::filesystem::current_path().string();
+	HICON hIcon = reinterpret_cast<HICON>(
+		LoadImageA(
+			nullptr, (relativePath + "\\" + imagePath).c_str(), IMAGE_ICON, 0, 0,
+			LR_DEFAULTSIZE | LR_LOADFROMFILE
+		));
+
 	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 }

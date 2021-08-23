@@ -33,7 +33,7 @@ public:
 	WinWindow& operator=(const WinWindow&) = delete;
 
 	void SetTitle(const std::string& title) override;
-	void SetIcon(std::uint16_t iconHandle) override;
+	void SetIcon(const std::string& imagePath) override;
 
 	bool IsCursorEnabled() const noexcept;
 	void* GetWindowHandle() const noexcept override;
