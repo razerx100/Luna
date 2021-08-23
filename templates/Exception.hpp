@@ -21,14 +21,24 @@ protected:
 	mutable std::string m_whatBuffer;
 };
 
-class GenericException : public std::exception {
+class GenericException : public Exception {
 public:
-	GenericException(const std::string& errorText) noexcept;
+	GenericException(
+		int line, const char* file,
+		const std::string& errorText
+	) noexcept;
 
 	const char* what() const noexcept override;
+	const char* GetType() const noexcept override;
 
 private:
 	std::string m_errorText;
 };
+
+// Must define this function in Window implementation
+void ExceptionMessageBox(
+	const std::string& exceptionDetails,
+	const std::string& exceptionType
+);
 
 #endif

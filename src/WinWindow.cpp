@@ -69,11 +69,11 @@ WinWindow::WinWindow(int width, int height, const char* name)
 
 	ShowWindow(m_hWnd, SW_SHOWDEFAULT);
 
-	if (!(m_kbRef = Keyboard::GetRef()))
-		throw GenericException("No Keyboard Object Initialized.");
+	if ((m_kbRef = Keyboard::GetRef()) == nullptr)
+		throw GenericException(__LINE__, __FILE__, "No Keyboard Object Initialized.");
 
-	if (!(m_mouseRef = Mouse::GetRef()))
-		throw GenericException("No Mouse Object Initialized.");
+	if ((m_mouseRef = Mouse::GetRef()) == nullptr)
+		throw GenericException(__LINE__, __FILE__, "No Mouse Object Initialized.");
 
 #ifdef _IMGUI
 	ImGui_ImplWin32_Init(m_hWnd);

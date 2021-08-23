@@ -50,6 +50,7 @@ enum SKeyCodes {
 	QuoteUS
 };
 
+// Must define this function in Window Implementation
 SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode);
 
 class Keyboard {

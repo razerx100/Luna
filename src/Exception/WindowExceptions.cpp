@@ -46,3 +46,13 @@ long WindowException::GetErrorCode() const noexcept {
 std::string WindowException::GetErrorString() const noexcept {
 	return TranslateErrorCode(m_hr);
 }
+
+void ExceptionMessageBox(
+	const std::string& exceptionDetails,
+	const std::string& exceptionType
+) {
+	MessageBoxA(
+		nullptr, exceptionDetails.c_str(), exceptionType.c_str(),
+		MB_OK | MB_ICONEXCLAMATION
+	);
+}
