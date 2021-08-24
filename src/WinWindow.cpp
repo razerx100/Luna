@@ -476,13 +476,18 @@ void* WinWindow::GetWindowHandle() const noexcept {
 	return reinterpret_cast<void*>(m_hWnd);
 }
 
-void WinWindow::SetIcon(const std::string& imagePath) {
+HICON WinWindow::LoadIconFromPath(const std::string& iconPath) {
 	std::string relativePath = std::filesystem::current_path().string();
-	HICON hIcon = reinterpret_cast<HICON>(
+
+	return reinterpret_cast<HICON>(
 		LoadImageA(
-			nullptr, (relativePath + "\\" + imagePath).c_str(), IMAGE_ICON, 0, 0,
+			nullptr, (relativePath + "\\" + iconPath).c_str(), IMAGE_ICON, 0, 0,
 			LR_DEFAULTSIZE | LR_LOADFROMFILE
 		));
+}
+
+void WinWindow::SetWindowIcon(const std::string& iconPath) {
+	HICON hIcon = LoadIconFromPath(iconPath);
 
 	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);

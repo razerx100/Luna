@@ -32,16 +32,15 @@ public:
 	WinWindow(const WinWindow&) = delete;
 	WinWindow& operator=(const WinWindow&) = delete;
 
-	void SetTitle(const std::string& title) override;
-	void SetIcon(const std::string& imagePath) override;
-
-	bool IsCursorEnabled() const noexcept;
+	bool IsCursorEnabled() const noexcept override;
 	void* GetWindowHandle() const noexcept override;
 
-	void EnableCursor() noexcept;
-	void DisableCursor() noexcept;
-	void ConfineCursor() noexcept;
-	void FreeCursor() noexcept;
+	void SetTitle(const std::string& title) override;
+	void SetWindowIcon(const std::string& iconPath) override;
+	void EnableCursor() noexcept override;
+	void DisableCursor() noexcept override;
+	void ConfineCursor() noexcept override;
+	void FreeCursor() noexcept override;
 
 	std::optional<int> Update() override;
 
@@ -53,6 +52,7 @@ private:
 	void ToggleFullScreenMode();
 	void HideCursor() noexcept;
 	void ShowCursor() noexcept;
+	HICON LoadIconFromPath(const std::string& iconPath);
 
 public:
 	Keyboard* m_kbRef;
