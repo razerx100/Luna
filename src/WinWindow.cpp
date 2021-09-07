@@ -404,22 +404,23 @@ void WinWindow::ToggleFullScreenMode() {
 				WS_SYSMENU)
 		);
 
-		RECT fullscreenWindowRect = {};
-
+		// Needed for multi monitor setups
 		if (PipelineManager::GetRef()) {
-			SRect sRect = PipelineManager::GetRef()->GetRenderAreaRECT();
-			fullscreenWindowRect = *reinterpret_cast<RECT*>(&sRect);
-		}
+			RECT renderingMonitorCoordinate = {};
 
-		SetWindowPos(
-			m_hWnd,
-			HWND_TOPMOST,
-			fullscreenWindowRect.left,
-			fullscreenWindowRect.top,
-			fullscreenWindowRect.right,
-			fullscreenWindowRect.bottom,
-			SWP_FRAMECHANGED | SWP_NOACTIVATE
-		);
+			SRect sRect = PipelineManager::GetRef()->GetMonitorCoordinates();
+			renderingMonitorCoordinate = *reinterpret_cast<RECT*>(&sRect);
+
+			SetWindowPos(
+				m_hWnd,
+				HWND_TOPMOST,
+				renderingMonitorCoordinate.left,
+				renderingMonitorCoordinate.top,
+				renderingMonitorCoordinate.right,
+				renderingMonitorCoordinate.bottom,
+				SWP_FRAMECHANGED | SWP_NOACTIVATE
+			);
+		}
 
 		ShowWindow(m_hWnd, SW_MAXIMIZE);
 	}

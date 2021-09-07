@@ -19,7 +19,7 @@ public:
 	virtual void SubmitCommands() = 0;
 	virtual void Render() = 0;
 	virtual void Resize(std::uint32_t width, std::uint32_t height) = 0;
-	virtual SRect GetRenderAreaRECT() = 0;
+	virtual SRect GetMonitorCoordinates() = 0;
 
 private:
 	static std::unique_ptr<PipelineManager> s_instance;
