@@ -7,8 +7,11 @@ class Exception : public std::exception {
 public:
 	Exception(int line, const char* file) noexcept;
 
-	const char* what() const noexcept override;
 	virtual const char* GetType() const noexcept;
+	// Call it in the end child's constructor
+	virtual void GenerateWhatBuffer() noexcept;
+
+	const char* what() const noexcept override;
 	int GetLine() const noexcept;
 	const std::string& GetFile() const noexcept;
 	std::string GetOriginString() const noexcept;
@@ -18,7 +21,7 @@ private:
 	std::string m_file;
 
 protected:
-	mutable std::string m_whatBuffer;
+	std::string m_whatBuffer;
 };
 
 class GenericException : public Exception {
@@ -30,6 +33,7 @@ public:
 
 	const char* what() const noexcept override;
 	const char* GetType() const noexcept override;
+	void GenerateWhatBuffer() noexcept override;
 
 private:
 	std::string m_errorText;

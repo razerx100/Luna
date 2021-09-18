@@ -1,20 +1,14 @@
 #ifndef __WINDOW_EXCEPTION_HPP__
 #define __WINDOW_EXCEPTION_HPP__
-#include <Exception.hpp>
-#include <CleanWin.hpp>
+#include <Win32BaseException.hpp>
 
-class WindowException : public Exception {
+class WindowException : public Win32BaseException {
 public:
-	WindowException(int line, const char* file, HRESULT hr) noexcept;
+	WindowException(int line, const char* file, long hr) noexcept;
 
 	const char* what() const noexcept override;
 	const char* GetType() const noexcept override;
-	static std::string TranslateErrorCode(long hr) noexcept;
-	long GetErrorCode() const noexcept;
-	std::string GetErrorString() const noexcept;
-
-private:
-	HRESULT m_hr;
+	void GenerateWhatBuffer() noexcept override;
 };
 
 class NoGfxException : public Exception {
