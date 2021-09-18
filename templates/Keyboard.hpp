@@ -4,6 +4,7 @@
 #include <queue>
 #include <bitset>
 #include <memory>
+#include <GenericSingleton.hpp>
 
 enum SKeyCodes {
 	Default,
@@ -53,7 +54,7 @@ enum SKeyCodes {
 // Must define this function in Window Implementation
 SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode);
 
-class Keyboard {
+class Keyboard : public GenericSingleton<Keyboard> {
 public:
 	class Event {
 	public:
@@ -110,9 +111,6 @@ public:
 	void DisableAutoRepeat() noexcept;
 	bool IsAutoRepeatEnabled() const noexcept;
 
-	static void Init();
-	static Keyboard* GetRef() noexcept;
-
 	void OnKeyPressed(std::uint16_t keycode) noexcept;
 	void OnKeyReleased(std::uint16_t keycode) noexcept;
 	void OnChar(char character) noexcept;
@@ -129,7 +127,5 @@ private:
 	std::bitset<s_nKeys> m_keystates;
 	std::queue<Event> m_keyBuffer;
 	std::queue<char> m_charBuffer;
-
-	static std::unique_ptr<Keyboard> s_instance;
 };
 #endif

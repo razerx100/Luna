@@ -1,6 +1,6 @@
 #ifndef __WIN_WINDOW_HPP__
 #define __WIN_WINDOW_HPP__
-#include <CleanWin.hpp>
+#include "CleanWin.hpp"
 #include <Window.hpp>
 #include <Keyboard.hpp>
 #include <Mouse.hpp>

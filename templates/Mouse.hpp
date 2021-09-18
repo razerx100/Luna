@@ -3,8 +3,9 @@
 #include <optional>
 #include <queue>
 #include <memory>
+#include <GenericSingleton.hpp>
 
-class Mouse {
+class Mouse : public GenericSingleton<Mouse> {
 public:
 	struct RawDelta {
 		int x;
@@ -105,9 +106,6 @@ public:
 	void EnableRaw() noexcept;
 	void DisableRaw() noexcept;
 
-	static void Init();
-	static Mouse* GetRef() noexcept;
-
 	void OnMouseMove(int x, int y) noexcept;
 	void OnMouseLeave() noexcept;
 	void OnMouseEnter() noexcept;
@@ -135,6 +133,5 @@ private:
 
 	std::queue<Event> m_buffer;
 	std::queue<RawDelta> m_rawDeltaBuffer;
-	static std::unique_ptr<Mouse> s_instance;
 };
 #endif
