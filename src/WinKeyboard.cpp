@@ -1,5 +1,6 @@
-#include <Keyboard.hpp>
+#include <IKeyboard.hpp>
 #include <CleanWin.hpp>
+#include <WinWindow.hpp>
 
 static SKeyCodes WinKeyMap[] = {
 	Default, Default, Default, Default, Default, Default, Default, Default,

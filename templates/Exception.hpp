@@ -39,10 +39,4 @@ private:
 	std::string m_errorText;
 };
 
-// Must define this function in Window implementation
-void ExceptionMessageBox(
-	const std::string& exceptionDetails,
-	const std::string& exceptionType
-);
-
 #endif

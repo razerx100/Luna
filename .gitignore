@@ -1,3 +1,4 @@
 .vs
 Solution
 *.lib
+*.exp

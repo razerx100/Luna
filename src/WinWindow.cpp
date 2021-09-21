@@ -1,6 +1,5 @@
 #include <WinWindow.hpp>
 #include <WindowThrowMacros.hpp>
-#include <PipelineManager.hpp>
 #include <filesystem>
 
 #ifdef _IMGUI
@@ -9,39 +8,39 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
 
-// WindowClass
-WinWindow::WindowClass WinWindow::WindowClass::s_wndClass;
-
 WinWindow::WindowClass::WindowClass() noexcept
-	: m_hInst(GetModuleHandle(nullptr)) {
+	: m_wndClass{} {
 
-	WNDCLASSEX wc = {};
-	wc.cbSize = sizeof(wc);
-	wc.style = CS_OWNDC;
-	wc.lpfnWndProc = HandleMsgSetup;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = GetInstance();
-	wc.hIcon = nullptr;
-	wc.hCursor = nullptr;
-	wc.hbrBackground = nullptr;
-	wc.lpszMenuName = nullptr;
-	wc.lpszClassName = GetName();
-	wc.hIconSm = nullptr;
-
-	RegisterClassEx(&wc);
+	m_wndClass.cbSize = sizeof(m_wndClass);
+	m_wndClass.style = CS_OWNDC;
+	m_wndClass.lpfnWndProc = HandleMsgSetup;
+	m_wndClass.cbClsExtra = 0;
+	m_wndClass.cbWndExtra = 0;
+	m_wndClass.hInstance = nullptr;
+	m_wndClass.hIcon = nullptr;
+	m_wndClass.hCursor = nullptr;
+	m_wndClass.hbrBackground = nullptr;
+	m_wndClass.lpszMenuName = nullptr;
+	m_wndClass.lpszClassName = GetName();
+	m_wndClass.hIconSm = nullptr;
 }
 
 WinWindow::WindowClass::~WindowClass() {
-	UnregisterClass(GetName(), GetInstance());
+	UnregisterClass(GetName(), m_wndClass.hInstance);
 }
 
 const char* WinWindow::WindowClass::GetName() noexcept {
 	return wndClassName;
 }
 
-HINSTANCE WinWindow::WindowClass::GetInstance() noexcept {
-	return s_wndClass.m_hInst;
+void WinWindow::WindowClass::Register() noexcept {
+	m_wndClass.hInstance = GetModuleHandleA(nullptr);
+
+	RegisterClassEx(&m_wndClass);
+}
+
+HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
+	return m_wndClass.hInstance;
 }
 
 // Window
@@ -49,6 +48,9 @@ WinWindow::WinWindow(int width, int height, const char* name)
 	: m_width(width), m_height(height), m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
 	m_cursorEnabled(true) {
+
+	m_windowClass.Register();
+
 	RECT wr;
 	wr.left = 0;
 	wr.right = width;
@@ -59,10 +61,10 @@ WinWindow::WinWindow(int width, int height, const char* name)
 
 	m_hWnd = CreateWindowEx(
 		0,
-		WindowClass::GetName(), name,
+		m_windowClass.GetName(), name,
 		m_windowStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
-		nullptr, nullptr, WindowClass::GetInstance(), this
+		nullptr, nullptr, m_windowClass.GetHInstance(), this
 	);
 
 	if (!m_hWnd)
@@ -70,10 +72,12 @@ WinWindow::WinWindow(int width, int height, const char* name)
 
 	ShowWindow(m_hWnd, SW_SHOWDEFAULT);
 
-	if ((m_kbRef = Keyboard::GetRef()) == nullptr)
+	if ((m_pKbRef = GetKeyboardInstance()) == nullptr)
 		throw GenericException(__LINE__, __FILE__, "No Keyboard Object Initialized.");
 
-	if ((m_mouseRef = Mouse::GetRef()) == nullptr)
+	m_pKbRef->SetNativeKeyCodeGetter(GetSKeyCodes);
+
+	if ((m_pMouseRef = GetMouseInstance()) == nullptr)
 		throw GenericException(__LINE__, __FILE__, "No Mouse Object Initialized.");
 
 #ifdef _IMGUI
@@ -144,7 +148,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	// Clear keystate when window loses focus to prevent input getting stuck
 	case WM_KILLFOCUS: {
-		m_kbRef->ClearState();
+		m_pKbRef->ClearState();
 		break;
 	}
 	case WM_SIZE: {
@@ -154,8 +158,8 @@ LRESULT WinWindow::HandleMsg(
 		m_width = clientRect.right - clientRect.left;
 		m_height = clientRect.bottom - clientRect.top;
 
-		if (PipelineManager::GetRef())
-			PipelineManager::GetRef()->Resize(m_width, m_height);
+		/*if (PipelineManager::GetRef())
+			PipelineManager::GetRef()->Resize(m_width, m_height);*/
 
 		if(!m_cursorEnabled)
 			ConfineCursor();
@@ -185,8 +189,8 @@ LRESULT WinWindow::HandleMsg(
 		if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
 			ToggleFullScreenMode();
 
-		if (!(lParam & 0x40000000) || m_kbRef->IsAutoRepeatEnabled()) // filters autoRepeat
-			m_kbRef->OnKeyPressed(static_cast<unsigned char>(wParam));
+		if (!(lParam & 0x40000000) || m_pKbRef->IsAutoRepeatEnabled()) // filters autoRepeat
+			m_pKbRef->OnKeyPressed(static_cast<unsigned char>(wParam));
 		break;
 	}
 	case WM_KEYUP:
@@ -197,7 +201,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_kbRef->OnKeyReleased(static_cast<unsigned char>(wParam));
+		m_pKbRef->OnKeyReleased(static_cast<unsigned char>(wParam));
 		break;
 	}
 	case WM_CHAR: {
@@ -207,15 +211,15 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_kbRef->OnChar(static_cast<char>(wParam));
+		m_pKbRef->OnChar(static_cast<char>(wParam));
 		break;
 	}
 	/************* END KEYBOARD MESSAGES *************/
 	/************* MOUSE MESSAGES *************/
 	case WM_MOUSEMOVE: {
-		if (!m_cursorEnabled && !m_mouseRef->IsInWindow()) {
+		if (!m_cursorEnabled && !m_pMouseRef->IsInWindow()) {
 			SetCapture(m_hWnd);
-			m_mouseRef->OnMouseEnter();
+			m_pMouseRef->OnMouseEnter();
 			HideCursor();
 			break;
 		}
@@ -229,20 +233,20 @@ LRESULT WinWindow::HandleMsg(
 		const POINTS pt = MAKEPOINTS(lParam);
 		// In client region
 		if (pt.x >= 0 && pt.x < m_width && pt.y >= 0 && pt.y < m_height) {
-			m_mouseRef->OnMouseMove(pt.x, pt.y);
+			m_pMouseRef->OnMouseMove(pt.x, pt.y);
 
-			if (!m_mouseRef->IsInWindow()) {
+			if (!m_pMouseRef->IsInWindow()) {
 				SetCapture(m_hWnd);
-				m_mouseRef->OnMouseEnter();
+				m_pMouseRef->OnMouseEnter();
 			}
 		}
 		// Not in client region, log move if button down
 		else {
 			if(wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON))
-				m_mouseRef->OnMouseMove(pt.x, pt.y);
+				m_pMouseRef->OnMouseMove(pt.x, pt.y);
 			else {
 				ReleaseCapture();
-				m_mouseRef->OnMouseLeave();
+				m_pMouseRef->OnMouseLeave();
 			}
 		}
 		break;
@@ -256,7 +260,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_mouseRef->OnLeftPress();
+		m_pMouseRef->OnLeftPress();
 		break;
 	}
 	case WM_LBUTTONUP: {
@@ -266,7 +270,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_mouseRef->OnLeftRelease();
+		m_pMouseRef->OnLeftRelease();
 		break;
 	}
 	case WM_MBUTTONDOWN: {
@@ -276,7 +280,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_mouseRef->OnMiddlePress();
+		m_pMouseRef->OnMiddlePress();
 		break;
 	}
 	case WM_MBUTTONUP: {
@@ -286,7 +290,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_mouseRef->OnMiddleRelease();
+		m_pMouseRef->OnMiddleRelease();
 		break;
 	}
 	case WM_RBUTTONDOWN: {
@@ -296,7 +300,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_mouseRef->OnRightPress();
+		m_pMouseRef->OnRightPress();
 		break;
 	}
 	case WM_RBUTTONUP: {
@@ -306,7 +310,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_mouseRef->OnRightRelease();
+		m_pMouseRef->OnRightRelease();
 		break;
 	}
 	case WM_MOUSEWHEEL: {
@@ -318,13 +322,13 @@ LRESULT WinWindow::HandleMsg(
 
 		int deltaWparam = GET_WHEEL_DELTA_WPARAM(wParam);
 
-		m_mouseRef->OnWheelDelta(deltaWparam);
+		m_pMouseRef->OnWheelDelta(deltaWparam);
 		break;
 	}
 	/************* END MOUSE MESSAGES *************/
 	/************* RAW MOUSE MESSAGES *************/
 	case WM_INPUT: {
-		if (!m_mouseRef->IsRawEnabled())
+		if (!m_pMouseRef->IsRawEnabled())
 			break;
 
 		std::uint32_t size = 0;
@@ -349,7 +353,7 @@ LRESULT WinWindow::HandleMsg(
 		auto& ri = reinterpret_cast<const RAWINPUT&>(*m_rawInputBuffer.data());
 		if (ri.header.dwType == RIM_TYPEMOUSE &&
 			(ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0))
-			m_mouseRef->OnMouseRawDelta(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
+			m_pMouseRef->OnMouseRawDelta(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
 
 		break;
 	}
@@ -359,12 +363,12 @@ LRESULT WinWindow::HandleMsg(
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void WinWindow::SetTitle(const std::string& title) {
-	if (!SetWindowText(m_hWnd, title.c_str()))
+void WinWindow::SetTitle(const char* title) {
+	if (!SetWindowText(m_hWnd, title))
 		throw HWND_LAST_EXCEPT();
 }
 
-std::optional<int> WinWindow::Update() {
+int WinWindow::Update() {
 	MSG msg = {};
 
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
@@ -375,7 +379,7 @@ std::optional<int> WinWindow::Update() {
 		DispatchMessage(&msg);
 	}
 
-	return {};
+	return 1;
 }
 
 void WinWindow::ToggleFullScreenMode() {
@@ -405,22 +409,22 @@ void WinWindow::ToggleFullScreenMode() {
 		);
 
 		// Needed for multi monitor setups
-		if (PipelineManager::GetRef()) {
-			RECT renderingMonitorCoordinate = {};
+		//if (PipelineManager::GetRef()) {
+		//	RECT renderingMonitorCoordinate = {};
 
-			SRect sRect = PipelineManager::GetRef()->GetMonitorCoordinates();
-			renderingMonitorCoordinate = *reinterpret_cast<RECT*>(&sRect);
+		//	SRect sRect = PipelineManager::GetRef()->GetMonitorCoordinates();
+		//	renderingMonitorCoordinate = *reinterpret_cast<RECT*>(&sRect);
 
-			SetWindowPos(
-				m_hWnd,
-				HWND_TOPMOST,
-				renderingMonitorCoordinate.left,
-				renderingMonitorCoordinate.top,
-				renderingMonitorCoordinate.right,
-				renderingMonitorCoordinate.bottom,
-				SWP_FRAMECHANGED | SWP_NOACTIVATE
-			);
-		}
+		//	SetWindowPos(
+		//		m_hWnd,
+		//		HWND_TOPMOST,
+		//		renderingMonitorCoordinate.left,
+		//		renderingMonitorCoordinate.top,
+		//		renderingMonitorCoordinate.right,
+		//		renderingMonitorCoordinate.bottom,
+		//		SWP_FRAMECHANGED | SWP_NOACTIVATE
+		//	);
+		//}
 
 		ShowWindow(m_hWnd, SW_MAXIMIZE);
 	}
@@ -477,7 +481,7 @@ void* WinWindow::GetWindowHandle() const noexcept {
 	return reinterpret_cast<void*>(m_hWnd);
 }
 
-HICON WinWindow::LoadIconFromPath(const std::string& iconPath) {
+HICON WinWindow::LoadIconFromPath(const char* iconPath) {
 	std::string relativePath = std::filesystem::current_path().string();
 
 	return reinterpret_cast<HICON>(
@@ -487,7 +491,7 @@ HICON WinWindow::LoadIconFromPath(const std::string& iconPath) {
 		));
 }
 
-void WinWindow::SetWindowIcon(const std::string& iconPath) {
+void WinWindow::SetWindowIcon(const char* iconPath) {
 	HICON hIcon = LoadIconFromPath(iconPath);
 
 	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);

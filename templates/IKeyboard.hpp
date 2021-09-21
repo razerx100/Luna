@@ -1,12 +1,10 @@
-#ifndef __KEYBOARD_HPP__
-#define __KEYBOARD_HPP__
-#include <optional>
-#include <queue>
-#include <bitset>
+#ifndef __IKEYBOARD_HPP__
+#define __IKEYBOARD_HPP__
 #include <memory>
-#include <GenericSingleton.hpp>
 
-enum SKeyCodes {
+#define PLUTO_DLL __declspec(dllimport)
+
+enum PLUTO_DLL SKeyCodes {
 	Default,
 	BackSpace,
 	Tab,
@@ -51,10 +49,7 @@ enum SKeyCodes {
 	QuoteUS
 };
 
-// Must define this function in Window Implementation
-SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode);
-
-class Keyboard : public GenericSingleton<Keyboard> {
+class PLUTO_DLL IKeyboard {
 public:
 	class Event {
 	public:
@@ -88,44 +83,37 @@ public:
 	};
 
 public:
-	Keyboard()
-		: m_autoRepeatEnabled(false) {}
+	virtual ~IKeyboard() = default;
 
-	Keyboard(const Keyboard&) = delete;
-	Keyboard& operator=(const Keyboard&) = delete;
+	// Must set a Native Keycode Getter in Window Module
+	virtual void SetNativeKeyCodeGetter(
+		SKeyCodes(*NativeKeyCodeGetter)(std::uint16_t)
+	) noexcept = 0;
 
 	// key events
-	bool IsKeyPressed(SKeyCodes keycode) const noexcept;
-	std::optional<Event> ReadKey() noexcept;
-	bool IsKeyEmpty() const noexcept;
-	void FlushKey() noexcept;
+	virtual bool IsKeyPressed(SKeyCodes keycode) const noexcept = 0;
+	virtual Event ReadKey() noexcept = 0;
+	virtual bool IsKeyEmpty() const noexcept = 0;
+	virtual void FlushKey() noexcept = 0;
 
 	// char events
-	std::optional<char> ReadChar() noexcept;
-	bool IsCharEmpty() const noexcept;
-	void FlushChar() noexcept;
-	void Flush() noexcept;
+	virtual char ReadChar() noexcept = 0;
+	virtual bool IsCharEmpty() const noexcept = 0;
+	virtual void FlushChar() noexcept = 0;
+	virtual void Flush() noexcept = 0;
 
 	// auto-repeat control
-	void EnableAutoRepeat() noexcept;
-	void DisableAutoRepeat() noexcept;
-	bool IsAutoRepeatEnabled() const noexcept;
+	virtual void EnableAutoRepeat() noexcept = 0;
+	virtual void DisableAutoRepeat() noexcept = 0;
+	virtual bool IsAutoRepeatEnabled() const noexcept = 0;
 
-	void OnKeyPressed(std::uint16_t keycode) noexcept;
-	void OnKeyReleased(std::uint16_t keycode) noexcept;
-	void OnChar(char character) noexcept;
-	void ClearState() noexcept;
-
-private:
-	template<typename T>
-	static void TrimBuffer(std::queue<T>& buffer) noexcept;
-
-private:
-	static constexpr unsigned int s_nKeys = 256u;
-	static constexpr unsigned int s_bufferSize = 16u;
-	bool m_autoRepeatEnabled;
-	std::bitset<s_nKeys> m_keystates;
-	std::queue<Event> m_keyBuffer;
-	std::queue<char> m_charBuffer;
+	virtual void OnKeyPressed(std::uint16_t keycode) noexcept = 0;
+	virtual void OnKeyReleased(std::uint16_t keycode) noexcept = 0;
+	virtual void OnChar(char character) noexcept = 0;
+	virtual void ClearState() noexcept = 0;
 };
+
+PLUTO_DLL IKeyboard* _cdecl GetKeyboardInstance() noexcept;
+PLUTO_DLL void _cdecl InitKeyboardInstance() noexcept;
+
 #endif
