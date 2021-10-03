@@ -1,9 +1,6 @@
 #ifndef __WINDOW_HPP__
 #define __WINDOW_HPP__
-#include <cinttypes>
-#include <memory>
-#include <optional>
-#include <string>
+#include <cstdint>
 
 #ifdef BUILD_LUNA
 #define LUNA_DLL __declspec(dllexport)
@@ -30,6 +27,7 @@ public:
 LUNA_DLL Window* _cdecl GetWindowInstance() noexcept;
 LUNA_DLL void _cdecl InitWindowInstance(
 	int width, int height, const char* name
-) noexcept;
+);
+LUNA_DLL void _cdecl CleanUpWindowInstance() noexcept;
 
 #endif

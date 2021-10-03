@@ -1,13 +1,19 @@
 #include <WinWindow.hpp>
 
-static std::unique_ptr<Window> sWindow;
+static Window* s_pWindow = nullptr;
 
 Window* GetWindowInstance() noexcept {
-	return sWindow.get();
+	return s_pWindow;
 }
 
 void InitWindowInstance(
 	int width, int height, const char* name
-) noexcept {
-	sWindow = std::make_unique<WinWindow>(width, height, name);
+) {
+	if (!s_pWindow)
+		s_pWindow = new WinWindow(width, height, name);
+}
+
+void CleanUpWindowInstance() noexcept {
+	if (s_pWindow)
+		delete s_pWindow;
 }

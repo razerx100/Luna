@@ -1,6 +1,7 @@
 #include <WinWindow.hpp>
 #include <WindowThrowMacros.hpp>
 #include <filesystem>
+#include <GraphicsEngine.hpp>
 
 #ifdef _IMGUI
 #include <imgui_impl_win32.h>
@@ -25,8 +26,8 @@ WinWindow::WindowClass::WindowClass() noexcept
 	m_wndClass.hIconSm = nullptr;
 }
 
-WinWindow::WindowClass::~WindowClass() {
-	UnregisterClass(GetName(), m_wndClass.hInstance);
+WinWindow::WindowClass::~WindowClass() noexcept {
+	UnregisterClassA(GetName(), m_wndClass.hInstance);
 }
 
 const char* WinWindow::WindowClass::GetName() noexcept {
@@ -95,7 +96,7 @@ WinWindow::WinWindow(int width, int height, const char* name)
 		throw HWND_LAST_EXCEPT();
 }
 
-WinWindow::~WinWindow() {
+WinWindow::~WinWindow() noexcept {
 #ifdef _IMGUI
 	ImGui_ImplWin32_Shutdown();
 #endif
@@ -158,8 +159,8 @@ LRESULT WinWindow::HandleMsg(
 		m_width = clientRect.right - clientRect.left;
 		m_height = clientRect.bottom - clientRect.top;
 
-		/*if (PipelineManager::GetRef())
-			PipelineManager::GetRef()->Resize(m_width, m_height);*/
+		if (GetGraphicsEngineInstance())
+			GetGraphicsEngineInstance()->Resize(m_width, m_height);
 
 		if(!m_cursorEnabled)
 			ConfineCursor();
@@ -409,22 +410,22 @@ void WinWindow::ToggleFullScreenMode() {
 		);
 
 		// Needed for multi monitor setups
-		//if (PipelineManager::GetRef()) {
-		//	RECT renderingMonitorCoordinate = {};
+		if (GetGraphicsEngineInstance()) {
+			RECT renderingMonitorCoordinate = {};
 
-		//	SRect sRect = PipelineManager::GetRef()->GetMonitorCoordinates();
-		//	renderingMonitorCoordinate = *reinterpret_cast<RECT*>(&sRect);
+			SRect sRect = GetGraphicsEngineInstance()->GetMonitorCoordinates();
+			renderingMonitorCoordinate = *reinterpret_cast<RECT*>(&sRect);
 
-		//	SetWindowPos(
-		//		m_hWnd,
-		//		HWND_TOPMOST,
-		//		renderingMonitorCoordinate.left,
-		//		renderingMonitorCoordinate.top,
-		//		renderingMonitorCoordinate.right,
-		//		renderingMonitorCoordinate.bottom,
-		//		SWP_FRAMECHANGED | SWP_NOACTIVATE
-		//	);
-		//}
+			SetWindowPos(
+				m_hWnd,
+				HWND_TOPMOST,
+				renderingMonitorCoordinate.left,
+				renderingMonitorCoordinate.top,
+				renderingMonitorCoordinate.right,
+				renderingMonitorCoordinate.bottom,
+				SWP_FRAMECHANGED | SWP_NOACTIVATE
+			);
+		}
 
 		ShowWindow(m_hWnd, SW_MAXIMIZE);
 	}

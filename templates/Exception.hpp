@@ -38,5 +38,4 @@ public:
 private:
 	std::string m_errorText;
 };
-
 #endif

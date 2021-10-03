@@ -4,8 +4,6 @@
 #include <Window.hpp>
 #include <IKeyboard.hpp>
 #include <IMouse.hpp>
-#include <optional>
-#include <memory>
 #include <vector>
 
 class WinWindow : public Window {
