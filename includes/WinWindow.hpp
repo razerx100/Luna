@@ -2,9 +2,8 @@
 #define __WIN_WINDOW_HPP__
 #include <CleanWin.hpp>
 #include <Window.hpp>
-#include <IKeyboard.hpp>
-#include <IMouse.hpp>
 #include <vector>
+#include <InputManager.hpp>
 
 class WinWindow : public Window {
 private:
@@ -12,7 +11,7 @@ private:
 	class WindowClass {
 	public:
 		WindowClass() noexcept;
-		~WindowClass();
+		~WindowClass() noexcept;
 
 		WindowClass(const WindowClass&) = delete;
 		WindowClass& operator=(const WindowClass&) = delete;
@@ -28,7 +27,7 @@ private:
 
 public:
 	WinWindow(int width, int height, const char* name);
-	~WinWindow();
+	~WinWindow() noexcept;
 
 	WinWindow(const WinWindow&) = delete;
 	WinWindow& operator=(const WinWindow&) = delete;
@@ -55,9 +54,8 @@ private:
 	void ShowCursor() noexcept;
 	HICON LoadIconFromPath(const char* iconPath);
 
-public:
-	IKeyboard* m_pKbRef;
-	IMouse* m_pMouseRef;
+private:
+	InputManager* m_pInputManagerRef;
 
 private:
 	int m_width;

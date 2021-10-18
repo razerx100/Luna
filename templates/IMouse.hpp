@@ -10,23 +10,19 @@ struct PLUTO_DLL Vector2 {
 
 class PLUTO_DLL IMouse {
 public:
-	struct MouseData {
-		bool leftPressed = false;
-		bool rightPressed = false;
-		bool middlePressed = false;
-		int x;
-		int y;
-	};
-
 	class Event {
 	public:
-		enum class Type {
+		enum Type {
 			LPress,
 			LRelease,
-			MPress,
-			MRelease,
 			RPress,
 			RRelease,
+			MPress,
+			MRelease,
+			X1Press,
+			X1Release,
+			X2Press,
+			X2Release,
 			WheelUp,
 			WheelDown,
 			Move,
@@ -37,16 +33,20 @@ public:
 
 	private:
 		Type m_type;
-		MouseData m_data;
+		Vector2 m_position;
 
 	public:
 		Event() noexcept
 			: m_type(Type::Invalid),
-			m_data{} {}
+			m_position{} {}
 
-		Event(Type type, const MouseData& data) noexcept
+		Event(Type type) noexcept
 			: m_type(type),
-			m_data(data) {}
+			m_position{} {}
+
+		Event(Type type, const Vector2& position) noexcept
+			: m_type(type),
+			m_position(position) {}
 
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
@@ -57,27 +57,15 @@ public:
 		}
 
 		Vector2 GetPos() const noexcept {
-			return { m_data.x, m_data.y };
+			return m_position;
 		}
 
 		int GetPosX() const noexcept {
-			return m_data.x;
+			return m_position.x;
 		}
 
 		int GetPosY() const noexcept {
-			return m_data.y;
-		}
-
-		bool IsLeftPressed() const noexcept {
-			return m_data.leftPressed;
-		}
-
-		bool IsMiddlePressed() const noexcept {
-			return m_data.middlePressed;
-		}
-
-		bool IsRightPressed() const noexcept {
-			return m_data.rightPressed;
+			return m_position.y;
 		}
 	};
 
@@ -87,37 +75,23 @@ public:
 	virtual Vector2 GetPos() const noexcept = 0;
 	virtual int GetPosX() const noexcept = 0;
 	virtual int GetPosY() const noexcept = 0;
+	virtual float GetMouseTicks() const noexcept = 0;
 	virtual Event Read() noexcept = 0;
-	virtual Vector2 ReadRawDelta() noexcept = 0;
 
 	virtual bool IsInWindow() const noexcept = 0;
 	virtual bool IsLeftPressed() const noexcept = 0;
 	virtual bool IsMiddlePressed() const noexcept = 0;
 	virtual bool IsRightPressed() const noexcept = 0;
+	virtual bool IsX1Pressed() const noexcept = 0;
+	virtual bool IsX2Pressed() const noexcept = 0;
 	virtual bool IsBufferEmpty() const noexcept = 0;
-	virtual bool IsRawEnabled() const noexcept = 0;
 
 	virtual void Flush() noexcept = 0;
-	virtual void EnableRaw() noexcept = 0;
-	virtual void DisableRaw() noexcept = 0;
 
+	virtual void SetRawMouseState(std::uint16_t mouseState) noexcept = 0;
 	virtual void OnMouseMove(int x, int y) noexcept = 0;
 	virtual void OnMouseLeave() noexcept = 0;
 	virtual void OnMouseEnter() noexcept = 0;
-	virtual void OnLeftPress() noexcept = 0;
-	virtual void OnMiddlePress() noexcept = 0;
-	virtual void OnRightPress() noexcept = 0;
-	virtual void OnLeftRelease() noexcept = 0;
-	virtual void OnMiddleRelease() noexcept = 0;
-	virtual void OnRightRelease() noexcept = 0;
-	virtual void OnWheelUp() noexcept = 0;
-	virtual void OnWheelDown() noexcept = 0;
-	virtual void OnMouseRawDelta(int dx, int dy) noexcept = 0;
-	virtual void OnWheelDelta(int delta) noexcept = 0;
+	virtual void OnWheelDelta(short delta) noexcept = 0;
 };
-
-PLUTO_DLL IMouse* _cdecl GetMouseInstance() noexcept;
-PLUTO_DLL void _cdecl InitMouseInstance();
-PLUTO_DLL void _cdecl CleanUpMouseInstance() noexcept;
-
 #endif

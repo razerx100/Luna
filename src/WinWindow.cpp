@@ -2,6 +2,7 @@
 #include <WindowThrowMacros.hpp>
 #include <filesystem>
 #include <GraphicsEngine.hpp>
+#include <hidusage.h>
 
 #ifdef _IMGUI
 #include <imgui_impl_win32.h>
@@ -73,26 +74,43 @@ WinWindow::WinWindow(int width, int height, const char* name)
 
 	ShowWindow(m_hWnd, SW_SHOWDEFAULT);
 
-	if ((m_pKbRef = GetKeyboardInstance()) == nullptr)
-		throw GenericException(__LINE__, __FILE__, "No Keyboard Object Initialized.");
-
-	m_pKbRef->SetNativeKeyCodeGetter(GetSKeyCodes);
-
-	if ((m_pMouseRef = GetMouseInstance()) == nullptr)
-		throw GenericException(__LINE__, __FILE__, "No Mouse Object Initialized.");
+	if ((m_pInputManagerRef = GetInputManagerInstance()) == nullptr)
+		throw GenericException(
+			__LINE__, __FILE__,
+			"No Input Manager Object Initialized."
+		);
 
 #ifdef _IMGUI
 	ImGui_ImplWin32_Init(m_hWnd);
 #endif
+	std::vector<RAWINPUTDEVICE> rIDs;
+	for (std::uint32_t index = 0u;
+		index < m_pInputManagerRef->GetKeyboardCount();
+		++index)
+		rIDs.emplace_back(
+			RAWINPUTDEVICE{
+				HID_USAGE_PAGE_GENERIC,
+				HID_USAGE_GENERIC_KEYBOARD,
+				RIDEV_DEVNOTIFY,
+				m_hWnd
+			}
+		);
 
-	// Raw Input register
-	RAWINPUTDEVICE rId = {};
-	rId.usUsagePage = 1u;
-	rId.usUsage = 2u;
-	rId.dwFlags = 0;
-	rId.hwndTarget = nullptr;
+	for(std::uint32_t index = 0u;
+		index < m_pInputManagerRef->GetMouseCount();
+		++index)
+		rIDs.emplace_back(
+			RAWINPUTDEVICE{
+				HID_USAGE_PAGE_GENERIC,
+				HID_USAGE_GENERIC_MOUSE,
+				RIDEV_DEVNOTIFY,
+				m_hWnd
+			}
+		);
 
-	if (!RegisterRawInputDevices(&rId, 1, sizeof(rId)))
+	if (!RegisterRawInputDevices(
+		rIDs.data(), static_cast<std::uint32_t>(rIDs.size()), sizeof(RAWINPUTDEVICE)
+	))
 		throw HWND_LAST_EXCEPT();
 }
 
@@ -149,7 +167,9 @@ LRESULT WinWindow::HandleMsg(
 	}
 	// Clear keystate when window loses focus to prevent input getting stuck
 	case WM_KILLFOCUS: {
-		m_pKbRef->ClearState();
+		for (IKeyboard* pKeyboard : m_pInputManagerRef->GetKeyboardRefs())
+			pKeyboard->ClearState();
+
 		break;
 	}
 	case WM_SIZE: {
@@ -164,174 +184,53 @@ LRESULT WinWindow::HandleMsg(
 
 		if(!m_cursorEnabled)
 			ConfineCursor();
+
 		break;
 	}
 	case WM_ACTIVATE: {
-		if (!m_cursorEnabled) {
-			if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE) {
-				HideCursor();
+		if (!m_cursorEnabled)
+			if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE)
 				ConfineCursor();
-			}
-			else {
-				ShowCursor();
+			else
 				FreeCursor();
-			}
-		}
+
+		break;
+	}
+	case WM_INPUT_DEVICE_CHANGE: {
+		if (wParam == GIDC_REMOVAL)
+			GetInputManagerInstance()->DeviceDisconnected(
+				static_cast<std::uint64_t>(lParam)
+			);
+
 		break;
 	}
 	/************* KEYBOARD MESSAGES *************/
-	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN: {
 #ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
 		if (imIO.WantCaptureKeyboard)
 			break;
 #endif
+
 		if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
 			ToggleFullScreenMode();
 
-		if (!(lParam & 0x40000000) || m_pKbRef->IsAutoRepeatEnabled()) // filters autoRepeat
-			m_pKbRef->OnKeyPressed(static_cast<unsigned char>(wParam));
-		break;
-	}
-	case WM_KEYUP:
-	case WM_SYSKEYUP: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureKeyboard)
-			break;
-#endif
-
-		m_pKbRef->OnKeyReleased(static_cast<unsigned char>(wParam));
 		break;
 	}
 	case WM_CHAR: {
 #ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
 		if (imIO.WantCaptureKeyboard)
 			break;
 #endif
 
-		m_pKbRef->OnChar(static_cast<char>(wParam));
+		GetInputManagerInstance()->GetKeyboardByIndex()->OnChar(
+			static_cast<char>(wParam)
+		);
+
 		break;
 	}
 	/************* END KEYBOARD MESSAGES *************/
-	/************* MOUSE MESSAGES *************/
-	case WM_MOUSEMOVE: {
-		if (!m_cursorEnabled && !m_pMouseRef->IsInWindow()) {
-			SetCapture(m_hWnd);
-			m_pMouseRef->OnMouseEnter();
-			HideCursor();
-			break;
-		}
-
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		const POINTS pt = MAKEPOINTS(lParam);
-		// In client region
-		if (pt.x >= 0 && pt.x < m_width && pt.y >= 0 && pt.y < m_height) {
-			m_pMouseRef->OnMouseMove(pt.x, pt.y);
-
-			if (!m_pMouseRef->IsInWindow()) {
-				SetCapture(m_hWnd);
-				m_pMouseRef->OnMouseEnter();
-			}
-		}
-		// Not in client region, log move if button down
-		else {
-			if(wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON))
-				m_pMouseRef->OnMouseMove(pt.x, pt.y);
-			else {
-				ReleaseCapture();
-				m_pMouseRef->OnMouseLeave();
-			}
-		}
-		break;
-	}
-	case WM_LBUTTONDOWN: {
-		SetForegroundWindow(m_hWnd);
-
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		m_pMouseRef->OnLeftPress();
-		break;
-	}
-	case WM_LBUTTONUP: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		m_pMouseRef->OnLeftRelease();
-		break;
-	}
-	case WM_MBUTTONDOWN: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		m_pMouseRef->OnMiddlePress();
-		break;
-	}
-	case WM_MBUTTONUP: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		m_pMouseRef->OnMiddleRelease();
-		break;
-	}
-	case WM_RBUTTONDOWN: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		m_pMouseRef->OnRightPress();
-		break;
-	}
-	case WM_RBUTTONUP: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		m_pMouseRef->OnRightRelease();
-		break;
-	}
-	case WM_MOUSEWHEEL: {
-#ifdef _IMGUI
-		// Consume this message if ImGui wants to capture
-		if (imIO.WantCaptureMouse)
-			break;
-#endif
-
-		int deltaWparam = GET_WHEEL_DELTA_WPARAM(wParam);
-
-		m_pMouseRef->OnWheelDelta(deltaWparam);
-		break;
-	}
-	/************* END MOUSE MESSAGES *************/
 	/************* RAW MOUSE MESSAGES *************/
 	case WM_INPUT: {
-		if (!m_pMouseRef->IsRawEnabled())
-			break;
-
 		std::uint32_t size = 0;
 
 		// Get raw data size with nullptr as buffer
@@ -352,9 +251,37 @@ LRESULT WinWindow::HandleMsg(
 			break;
 
 		auto& ri = reinterpret_cast<const RAWINPUT&>(*m_rawInputBuffer.data());
-		if (ri.header.dwType == RIM_TYPEMOUSE &&
-			(ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0))
-			m_pMouseRef->OnMouseRawDelta(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
+		if (ri.header.dwType == RIM_TYPEMOUSE) {
+			IMouse* pMouseRef = m_pInputManagerRef->GetMouseByHandle(
+				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
+			);
+
+			if (ri.data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
+				pMouseRef->OnWheelDelta(static_cast<short>(ri.data.mouse.usButtonData));
+			else if (ri.data.mouse.usButtonFlags)
+				pMouseRef->SetRawMouseState(ri.data.mouse.usButtonFlags);
+
+			if (ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0)
+				pMouseRef->OnMouseMove(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
+		}
+		else if (ri.header.dwType == RIM_TYPEKEYBOARD) {
+			IKeyboard* pKeyboardRef = m_pInputManagerRef->GetKeyboardByHandle(
+				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
+			);
+
+			if ((ri.data.keyboard.Flags & RI_KEY_MAKE) == RI_KEY_MAKE)
+				pKeyboardRef->OnKeyPressed(
+					GetSKeyCodes(
+						ri.data.keyboard.VKey
+					)
+				);
+			else if (ri.data.keyboard.Flags & RI_KEY_BREAK)
+				pKeyboardRef->OnKeyReleased(
+					GetSKeyCodes(
+						ri.data.keyboard.VKey
+					)
+				);
+		}
 
 		break;
 	}
