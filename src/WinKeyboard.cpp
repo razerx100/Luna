@@ -2,7 +2,9 @@
 #include <CleanWin.hpp>
 #include <WinWindow.hpp>
 
-static SKeyCodes WinKeyMap[] = {
+using enum SKeyCodes;
+
+static const SKeyCodes WinKeyMap[] = {
 	Default, Default, Default, Default, Default, Default, Default, Default,
 	BackSpace, Tab,
 	Default, Default, Default,

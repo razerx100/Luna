@@ -8,21 +8,19 @@ struct PLUTO_DLL Vector2 {
 	int y;
 };
 
+enum class PLUTO_DLL MouseButtons {
+	Left,
+	Right,
+	Middle,
+	X1,
+	X2
+};
+
 class PLUTO_DLL IMouse {
 public:
 	class Event {
 	public:
-		enum Type {
-			LPress,
-			LRelease,
-			RPress,
-			RRelease,
-			MPress,
-			MRelease,
-			X1Press,
-			X1Release,
-			X2Press,
-			X2Release,
+		enum class Type {
 			WheelUp,
 			WheelDown,
 			Move,
@@ -79,11 +77,8 @@ public:
 	virtual Event Read() noexcept = 0;
 
 	virtual bool IsInWindow() const noexcept = 0;
-	virtual bool IsLeftPressed() const noexcept = 0;
-	virtual bool IsMiddlePressed() const noexcept = 0;
-	virtual bool IsRightPressed() const noexcept = 0;
-	virtual bool IsX1Pressed() const noexcept = 0;
-	virtual bool IsX2Pressed() const noexcept = 0;
+	virtual bool IsButtonPressed(MouseButtons button) const noexcept = 0;
+	virtual bool AreButtonsPressed(int count, ...) const noexcept = 0;
 	virtual bool IsBufferEmpty() const noexcept = 0;
 
 	virtual void Flush() noexcept = 0;

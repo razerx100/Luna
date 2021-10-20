@@ -4,10 +4,10 @@
 #include "IMouse.hpp"
 #include <vector>
 
-enum PLUTO_DLL DeviceType {
-	KeyboardDev,
-	MouseDev,
-	GamepadDev,
+enum class PLUTO_DLL DeviceType {
+	Keyboard,
+	Mouse,
+	Gamepad,
 	DeviceTypeCount
 };
 

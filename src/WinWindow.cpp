@@ -269,13 +269,14 @@ LRESULT WinWindow::HandleMsg(
 				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
 			);
 
-			if ((ri.data.keyboard.Flags & RI_KEY_MAKE) == RI_KEY_MAKE)
+			std::uint32_t legacyMessage = ri.data.keyboard.Message;
+			if (legacyMessage == WM_KEYDOWN || legacyMessage == WM_SYSKEYDOWN)
 				pKeyboardRef->OnKeyPressed(
 					GetSKeyCodes(
 						ri.data.keyboard.VKey
 					)
 				);
-			else if (ri.data.keyboard.Flags & RI_KEY_BREAK)
+			else if (legacyMessage == WM_KEYUP || legacyMessage == WM_SYSKEYUP)
 				pKeyboardRef->OnKeyReleased(
 					GetSKeyCodes(
 						ri.data.keyboard.VKey

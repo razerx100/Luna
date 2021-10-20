@@ -4,7 +4,7 @@
 
 #define PLUTO_DLL __declspec(dllimport)
 
-enum PLUTO_DLL SKeyCodes {
+enum class PLUTO_DLL SKeyCodes {
 	Default,
 	BackSpace,
 	Tab,
@@ -87,6 +87,7 @@ public:
 
 	// key events
 	virtual bool IsKeyPressed(SKeyCodes keycode) const noexcept = 0;
+	virtual bool AreKeysPressed(int count, ...) const noexcept = 0;
 	virtual Event ReadKey() noexcept = 0;
 	virtual bool IsKeyEmpty() const noexcept = 0;
 	virtual void FlushKey() noexcept = 0;
