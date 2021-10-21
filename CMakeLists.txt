@@ -69,6 +69,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(GraphicsEngine)
 
+add_dependencies(${PROJECT_NAME} ${INPUT_MANAGER} ${GRAPHICS_ENGINE})
+
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "RenderWindow")
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
