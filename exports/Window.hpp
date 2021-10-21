@@ -24,10 +24,10 @@ public:
 	virtual void* GetWindowHandle() const noexcept = 0;
 };
 
-LUNA_DLL Window* _cdecl GetWindowInstance() noexcept;
-LUNA_DLL void _cdecl InitWindowInstance(
+LUNA_DLL Window* __cdecl GetWindowInstance() noexcept;
+LUNA_DLL void __cdecl InitWindowInstance(
 	int width, int height, const char* name
 );
-LUNA_DLL void _cdecl CleanUpWindowInstance() noexcept;
+LUNA_DLL void __cdecl CleanUpWindowInstance() noexcept;
 
 #endif

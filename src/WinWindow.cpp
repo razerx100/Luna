@@ -206,11 +206,6 @@ LRESULT WinWindow::HandleMsg(
 	}
 	/************* KEYBOARD MESSAGES *************/
 	case WM_SYSKEYDOWN: {
-#ifdef _IMGUI
-		if (imIO.WantCaptureKeyboard)
-			break;
-#endif
-
 		if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
 			ToggleFullScreenMode();
 
@@ -293,14 +288,14 @@ LRESULT WinWindow::HandleMsg(
 }
 
 void WinWindow::SetTitle(const char* title) {
-	if (!SetWindowText(m_hWnd, title))
+	if (!SetWindowTextA(m_hWnd, title))
 		throw HWND_LAST_EXCEPT();
 }
 
 int WinWindow::Update() {
 	MSG msg = {};
 
-	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+	while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT)
 			return static_cast<int>(msg.wParam);
 
