@@ -1,12 +1,16 @@
 # Luna
-Window module using Win32. It's meant to be used with any of the Direct3D version and Sol. A pair of Keyboard and Mouse modules are required to manage Input Handling. Have a look at the Pluto module.
+Window module using Win32. It's meant to be used with any of the Direct3D version and Sol. Currently dependent on Pluto and GaiaX. Both of those can be replaced with similar Input and Graphics modules implementing the required interface.
+
+# Dependencies
+1: Pluto.
+2: GaiaX.
 
 # Third party library Used
 ImGui
 
 ## Instructions
-Put the import library .lib in the ***libs*** directory. Then run the appropriate Setup script to build the project with or without ImGui.
+Run the appropriate Setup script to configure the project with or without ImGui.
 
 ## Requirements
-cmake 3.11+.\
+cmake 3.21+.\
 C++20 Standard supported Compiler.

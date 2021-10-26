@@ -84,8 +84,18 @@ WinWindow::WinWindow(int width, int height, const char* name)
 	ImGui_ImplWin32_Init(m_hWnd);
 #endif
 	std::vector<RAWINPUTDEVICE> rIDs;
+	std::uint32_t keyboardCount = m_pInputManagerRef->GetKeyboardCount();
+	std::uint32_t mouseCount = m_pInputManagerRef->GetMouseCount();
+	std::uint32_t gamepadCount = m_pInputManagerRef->GetGamepadCount();
+
+	if (gamepadCount >= 5u)
+		throw GenericException(
+			__LINE__, __FILE__,
+			"Maximum supported XBox gamepads are four."
+		);
+
 	for (std::uint32_t index = 0u;
-		index < m_pInputManagerRef->GetKeyboardCount();
+		index < keyboardCount;
 		++index)
 		rIDs.emplace_back(
 			RAWINPUTDEVICE{
@@ -97,12 +107,24 @@ WinWindow::WinWindow(int width, int height, const char* name)
 		);
 
 	for(std::uint32_t index = 0u;
-		index < m_pInputManagerRef->GetMouseCount();
+		index < mouseCount;
 		++index)
 		rIDs.emplace_back(
 			RAWINPUTDEVICE{
 				HID_USAGE_PAGE_GENERIC,
 				HID_USAGE_GENERIC_MOUSE,
+				RIDEV_DEVNOTIFY,
+				m_hWnd
+			}
+		);
+
+	for(std::uint32_t index = 0u;
+		index < gamepadCount;
+		++index)
+		rIDs.emplace_back(
+			RAWINPUTDEVICE{
+				HID_USAGE_PAGE_GENERIC,
+				HID_USAGE_GENERIC_GAMEPAD,
 				RIDEV_DEVNOTIFY,
 				m_hWnd
 			}
@@ -167,8 +189,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	// Clear keystate when window loses focus to prevent input getting stuck
 	case WM_KILLFOCUS: {
-		for (IKeyboard* pKeyboard : m_pInputManagerRef->GetKeyboardRefs())
-			pKeyboard->ClearState();
+		GetInputManagerInstance()->ClearInputStates();
 
 		break;
 	}
@@ -277,6 +298,11 @@ LRESULT WinWindow::HandleMsg(
 						ri.data.keyboard.VKey
 					)
 				);
+		}
+		else if (ri.header.dwType == RIM_TYPEHID) {
+			IGamepad* pGamepadRef = m_pInputManagerRef->GetGamepadByHandle(
+				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
+			);
 		}
 
 		break;
