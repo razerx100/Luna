@@ -32,10 +32,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE includes/ exports/ includes/G
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "$<$<CONFIG:DEBUG>:_DEBUG>" "$<$<CONFIG:RELEASE>:NDEBUG>" BUILD_LUNA)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-    ${CMAKE_BINARY_DIR}/lib/$<$<CONFIG:DEBUG>:Debug>$<$<CONFIG:RELEASE>:Release>/*.lib
-)
-
 if(IMGUIFLAG STREQUAL "ENABLE")
     target_include_directories(${PROJECT_NAME} PRIVATE ImGui/includes/)
     target_compile_definitions(${PROJECT_NAME} PRIVATE _IMGUI)
@@ -68,6 +64,11 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(GraphicsEngine)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    ${CMAKE_BINARY_DIR}/lib/$<$<CONFIG:DEBUG>:Debug>$<$<CONFIG:RELEASE>:Release>/InputManager.lib
+    ${CMAKE_BINARY_DIR}/lib/$<$<CONFIG:DEBUG>:Debug>$<$<CONFIG:RELEASE>:Release>/GraphicsEngine.lib
+)
 
 add_dependencies(${PROJECT_NAME} ${INPUT_MANAGER} ${GRAPHICS_ENGINE})
 

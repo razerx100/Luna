@@ -2,8 +2,8 @@
 Window module using Win32. It's meant to be used with any of the Direct3D version and Sol. Currently dependent on Pluto and GaiaX. Both of those can be replaced with similar Input and Graphics modules implementing the required interface.
 
 # Dependencies
-1: Pluto.
-2: GaiaX.
+1. Pluto.
+2. GaiaX.
 
 # Third party library Used
 ImGui
