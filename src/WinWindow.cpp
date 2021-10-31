@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <GraphicsEngine.hpp>
 #include <hidusage.h>
+#include <Xinput.h>
 
 #ifdef _IMGUI
 #include <imgui_impl_win32.h>
@@ -118,9 +119,17 @@ WinWindow::WinWindow(int width, int height, const char* name)
 			}
 		);
 
-	for(std::uint32_t index = 0u;
-		index < gamepadCount;
-		++index)
+	std::vector<IGamepad*> pGamepadRefs = m_pInputManagerRef->GetGamepadRefs();
+	for (IGamepad* gamepad : pGamepadRefs) {
+		if(!gamepad->GetLeftThumbStickDeadZone())
+			gamepad->SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+
+		if(!gamepad->GetRightThumbStickDeadZone())
+			gamepad->SetRightThumbStickDeadZone(XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+
+		if (!gamepad->GetTriggerThreshold())
+			gamepad->SetTriggerThreshold(XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+
 		rIDs.emplace_back(
 			RAWINPUTDEVICE{
 				HID_USAGE_PAGE_GENERIC,
@@ -129,6 +138,7 @@ WinWindow::WinWindow(int width, int height, const char* name)
 				m_hWnd
 			}
 		);
+	}
 
 	if (!RegisterRawInputDevices(
 		rIDs.data(), static_cast<std::uint32_t>(rIDs.size()), sizeof(RAWINPUTDEVICE)
@@ -300,9 +310,28 @@ LRESULT WinWindow::HandleMsg(
 				);
 		}
 		else if (ri.header.dwType == RIM_TYPEHID) {
-			IGamepad* pGamepadRef = m_pInputManagerRef->GetGamepadByHandle(
+			GamepadData pGamepadRef = m_pInputManagerRef->GetGamepadByHandle(
 				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
 			);
+
+			XINPUT_STATE state;
+			ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+			if (XInputGetState(pGamepadRef.index, &state) == ERROR_SUCCESS) {
+				XINPUT_GAMEPAD xData = state.Gamepad;
+
+				pGamepadRef.pGamepad->SetRawButtonState(xData.wButtons);
+
+				float magnitude = sqrt(
+					xData.sThumbLX * xData.sThumbLX +
+					xData.sThumbLY * xData.sThumbLY
+				);
+
+				float normalizedLX = xData.sThumbLX / magnitude;
+				float normalizedLY = xData.sThumbLY / magnitude;
+
+				float normalizedMagnitude = 0;
+			}
 		}
 
 		break;

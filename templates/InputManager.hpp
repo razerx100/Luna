@@ -12,6 +12,11 @@ enum class PLUTO_DLL DeviceType {
 	DeviceTypeCount
 };
 
+struct PLUTO_DLL GamepadData {
+	IGamepad* pGamepad = nullptr;
+	std::uint8_t index = 0u;
+};
+
 class PLUTO_DLL InputManager {
 public:
 	virtual ~InputManager() = default;
@@ -35,7 +40,7 @@ public:
 	virtual	IGamepad* GetGamepadByIndex(std::uint32_t index = 0u) const noexcept = 0;
 	virtual	IKeyboard* GetKeyboardByHandle(std::uint64_t handle) noexcept = 0;
 	virtual	IMouse* GetMouseByHandle(std::uint64_t handle) noexcept = 0;
-	virtual	IGamepad* GetGamepadByHandle(std::uint64_t handle) noexcept = 0;
+	virtual	GamepadData GetGamepadByHandle(std::uint64_t handle) noexcept = 0;
 
 	virtual void ClearInputStates() noexcept = 0;
 };

@@ -32,6 +32,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE includes/ exports/ includes/G
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "$<$<CONFIG:DEBUG>:_DEBUG>" "$<$<CONFIG:RELEASE>:NDEBUG>" BUILD_LUNA)
 
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    Xinput.lib
+)
+
 if(IMGUIFLAG STREQUAL "ENABLE")
     target_include_directories(${PROJECT_NAME} PRIVATE ImGui/includes/)
     target_compile_definitions(${PROJECT_NAME} PRIVATE _IMGUI)
