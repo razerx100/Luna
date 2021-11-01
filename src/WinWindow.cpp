@@ -322,15 +322,46 @@ LRESULT WinWindow::HandleMsg(
 
 				pGamepadRef.pGamepad->SetRawButtonState(xData.wButtons);
 
-				float magnitude = sqrt(
-					xData.sThumbLX * xData.sThumbLX +
-					xData.sThumbLY * xData.sThumbLY
-				);
+				std::int16_t leftStickDeadZone = pGamepadRef.pGamepad->
+					GetLeftThumbStickDeadZone();
+				if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
+					magnitude > leftStickDeadZone)
+					pGamepadRef.pGamepad->OnLeftThumbStickMove(
+						ProcessASMagnitude(
+							magnitude, xData.sThumbLX, xData.sThumbLY,
+							leftStickDeadZone
+						)
+					);
 
-				float normalizedLX = xData.sThumbLX / magnitude;
-				float normalizedLY = xData.sThumbLY / magnitude;
+				std::int16_t rightStickDeadZone = pGamepadRef.pGamepad->
+					GetRightThumbStickDeadZone();
+				if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
+					magnitude > rightStickDeadZone)
+					pGamepadRef.pGamepad->OnRightThumbStickMove(
+						ProcessASMagnitude(
+							magnitude, xData.sThumbRX, xData.sThumbRY,
+							rightStickDeadZone
+						)
+					);
 
-				float normalizedMagnitude = 0;
+				std::uint32_t threshold = pGamepadRef.pGamepad->GetTriggerThreshold();
+				if (xData.bLeftTrigger > threshold)
+					pGamepadRef.pGamepad->OnLeftTriggerMove(
+						ProcessDeadZone(
+							static_cast<float>(xData.bLeftTrigger),
+							255u,
+							threshold
+						)
+					);
+
+				if (xData.bRightTrigger > threshold)
+					pGamepadRef.pGamepad->OnRightTriggerMove(
+						ProcessDeadZone(
+							static_cast<float>(xData.bRightTrigger),
+							255u,
+							threshold
+						)
+					);
 			}
 		}
 
@@ -475,4 +506,33 @@ void WinWindow::SetWindowIcon(const char* iconPath) {
 
 	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+}
+
+float WinWindow::GetMagnitude(std::int16_t x, std::int16_t y) const noexcept {
+	return std::sqrtf(
+		static_cast<float>(std::pow(x, 2) +
+		std::pow(y, 2))
+	);
+}
+
+float WinWindow::ProcessDeadZone(
+	float magnitude, std::uint32_t maxValue, std::uint32_t deadZone
+) const noexcept {
+	magnitude = std::min(magnitude, static_cast<float>(maxValue));
+	magnitude -= deadZone;
+
+	return magnitude / (maxValue - deadZone);
+}
+
+ASData WinWindow::ProcessASMagnitude(
+	float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
+) const noexcept {
+	ASData data = {};
+
+	data.xDirection = x / magnitude;
+	data.yDirection = y / magnitude;
+
+	data.magnitude = ProcessDeadZone(magnitude, 32767u, deadZone);
+
+	return data;
 }

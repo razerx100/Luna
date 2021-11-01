@@ -21,9 +21,10 @@ enum class PLUTO_DLL XBoxButton {
 	Y
 };
 
-struct PLUTO_DLL Vector2D {
-	float x;
-	float y;
+struct PLUTO_DLL ASData {
+	float magnitude;
+	float xDirection;
+	float yDirection;
 };
 
 class PLUTO_DLL IGamepad {
@@ -40,20 +41,19 @@ public:
 
 	private:
 		Type m_type;
-		Vector2D m_direction;
+		ASData m_data;
 
 	public:
 		Event() noexcept
 			: m_type(Type::Invalid),
-			m_direction{} {}
+			m_data{} {}
 
 		Event(Type type, float magnitude) noexcept
 			: m_type(type),
-			m_direction{magnitude, 0.0f} {}
+			m_data{magnitude, 0.0f, 0.0f} {}
 
-		Event(Type type, const Vector2D& position) noexcept
-			: m_type(type),
-			m_direction(position) {}
+		Event(Type type, ASData data) noexcept
+			: m_type(type), m_data(data) {}
 
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
@@ -63,12 +63,12 @@ public:
 			return m_type;
 		}
 
-		Vector2D GetPos() const noexcept {
-			return m_direction;
+		ASData GetASData() const noexcept {
+			return m_data;
 		}
 
 		float GetMagnitude() const noexcept {
-			return m_direction.x;
+			return m_data.magnitude;
 		}
 	};
 
@@ -83,8 +83,8 @@ public:
 	virtual bool IsButtonPressed(XBoxButton button) const noexcept = 0;
 	virtual bool AreButtonsPressed(int count, ...) const noexcept = 0;
 
-	virtual void OnLeftThumbStickMove(float data) noexcept = 0;
-	virtual void OnRightThumbStickMove(float data) noexcept = 0;
+	virtual void OnLeftThumbStickMove(ASData data) noexcept = 0;
+	virtual void OnRightThumbStickMove(ASData data) noexcept = 0;
 	virtual void OnLeftTriggerMove(float data) noexcept = 0;
 	virtual void OnRightTriggerMove(float data) noexcept = 0;
 

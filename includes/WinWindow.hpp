@@ -54,6 +54,14 @@ private:
 	void ShowCursor() noexcept;
 	HICON LoadIconFromPath(const char* iconPath);
 
+	float GetMagnitude(std::int16_t x, std::int16_t y) const noexcept;
+	float ProcessDeadZone(
+		float magnitude, std::uint32_t maxValue, std::uint32_t deadZone
+	) const noexcept;
+	ASData ProcessASMagnitude(
+		float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
+	) const noexcept;
+
 private:
 	InputManager* m_pInputManagerRef;
 
