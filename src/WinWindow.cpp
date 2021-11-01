@@ -322,7 +322,7 @@ LRESULT WinWindow::HandleMsg(
 
 				pGamepadRef.pGamepad->SetRawButtonState(xData.wButtons);
 
-				std::int16_t leftStickDeadZone = pGamepadRef.pGamepad->
+				std::uint16_t leftStickDeadZone = pGamepadRef.pGamepad->
 					GetLeftThumbStickDeadZone();
 				if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
 					magnitude > leftStickDeadZone)
@@ -333,7 +333,7 @@ LRESULT WinWindow::HandleMsg(
 						)
 					);
 
-				std::int16_t rightStickDeadZone = pGamepadRef.pGamepad->
+				std::uint16_t rightStickDeadZone = pGamepadRef.pGamepad->
 					GetRightThumbStickDeadZone();
 				if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
 					magnitude > rightStickDeadZone)
