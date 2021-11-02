@@ -89,12 +89,10 @@ public:
 	virtual bool IsKeyPressed(SKeyCodes keycode) const noexcept = 0;
 	virtual bool AreKeysPressed(int count, ...) const noexcept = 0;
 	virtual Event ReadKey() noexcept = 0;
-	virtual bool IsKeyEmpty() const noexcept = 0;
 	virtual void FlushKey() noexcept = 0;
 
 	// char events
 	virtual char ReadChar() noexcept = 0;
-	virtual bool IsCharEmpty() const noexcept = 0;
 	virtual void FlushChar() noexcept = 0;
 	virtual void Flush() noexcept = 0;
 

@@ -78,7 +78,6 @@ public:
 	virtual void ClearState() noexcept = 0;
 
 	virtual Event Read() noexcept = 0;
-	virtual bool IsBufferEmpty() const noexcept = 0;
 
 	virtual bool IsButtonPressed(XBoxButton button) const noexcept = 0;
 	virtual bool AreButtonsPressed(int count, ...) const noexcept = 0;

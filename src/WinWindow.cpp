@@ -284,8 +284,11 @@ LRESULT WinWindow::HandleMsg(
 
 			if (ri.data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
 				pMouseRef->OnWheelDelta(static_cast<short>(ri.data.mouse.usButtonData));
-			else if (ri.data.mouse.usButtonFlags)
-				pMouseRef->SetRawMouseState(ri.data.mouse.usButtonFlags);
+			else if (ri.data.mouse.usButtonFlags) {
+				auto processedData = ProcessMouseRawButtons(ri.data.mouse.usButtonFlags);
+				pMouseRef->SetPressState(processedData.first);
+				pMouseRef->SetReleaseState(processedData.second);
+			}
 
 			if (ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0)
 				pMouseRef->OnMouseMove(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
@@ -320,7 +323,11 @@ LRESULT WinWindow::HandleMsg(
 			if (XInputGetState(pGamepadRef.index, &state) == ERROR_SUCCESS) {
 				XINPUT_GAMEPAD xData = state.Gamepad;
 
-				pGamepadRef.pGamepad->SetRawButtonState(xData.wButtons);
+				pGamepadRef.pGamepad->SetRawButtonState(
+					ProcessGamepadRawButtons(
+						xData.wButtons
+					)
+				);
 
 				std::uint16_t leftStickDeadZone = pGamepadRef.pGamepad->
 					GetLeftThumbStickDeadZone();

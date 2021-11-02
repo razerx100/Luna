@@ -79,6 +79,10 @@ private:
 	std::vector<std::uint8_t> m_rawInputBuffer;
 };
 
-SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode);
+SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept;
+std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
+	std::uint16_t newState
+) noexcept;
+std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept;
 
 #endif
