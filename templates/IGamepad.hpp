@@ -18,7 +18,8 @@ enum class PLUTO_DLL XBoxButton {
 	A,
 	B,
 	X,
-	Y
+	Y,
+	Invalid
 };
 
 struct PLUTO_DLL ASData {
@@ -36,24 +37,36 @@ public:
 			RightThumbStick,
 			LeftTrigger,
 			RightTrigger,
+			Press,
+			Release,
 			Invalid
 		};
 
 	private:
 		Type m_type;
+		XBoxButton m_button;
 		ASData m_data;
 
 	public:
 		Event() noexcept
 			: m_type(Type::Invalid),
+			m_button(XBoxButton::Invalid),
 			m_data{} {}
 
 		Event(Type type, float magnitude) noexcept
 			: m_type(type),
+			m_button(XBoxButton::Invalid),
 			m_data{magnitude, 0.0f, 0.0f} {}
 
 		Event(Type type, ASData data) noexcept
-			: m_type(type), m_data(data) {}
+			: m_type(type),
+			m_button(XBoxButton::Invalid),
+			m_data(data) {}
+
+		Event(Type type, XBoxButton button) noexcept
+			: m_type(type),
+			m_button(button),
+			m_data{} {}
 
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
@@ -69,6 +82,10 @@ public:
 
 		float GetMagnitude() const noexcept {
 			return m_data.magnitude;
+		}
+
+		XBoxButton GetButton() const noexcept {
+			return m_button;
 		}
 	};
 

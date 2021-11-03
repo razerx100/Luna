@@ -13,7 +13,8 @@ enum class PLUTO_DLL MouseButtons {
 	Right,
 	Middle,
 	X1,
-	X2
+	X2,
+	Invalid
 };
 
 class PLUTO_DLL IMouse {
@@ -23,28 +24,29 @@ public:
 		enum class Type {
 			WheelUp,
 			WheelDown,
-			Move,
 			Enter,
 			Leave,
+			Press,
+			Release,
 			Invalid
 		};
 
 	private:
 		Type m_type;
-		Vector2 m_position;
+		MouseButtons m_button;
 
 	public:
 		Event() noexcept
 			: m_type(Type::Invalid),
-			m_position{} {}
+			m_button(MouseButtons::Invalid) {}
 
 		Event(Type type) noexcept
 			: m_type(type),
-			m_position{} {}
+			m_button(MouseButtons::Invalid) {}
 
-		Event(Type type, const Vector2& position) noexcept
+		Event(Type type, MouseButtons button) noexcept
 			: m_type(type),
-			m_position(position) {}
+			m_button(button) {}
 
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
@@ -54,16 +56,8 @@ public:
 			return m_type;
 		}
 
-		Vector2 GetPos() const noexcept {
-			return m_position;
-		}
-
-		int GetPosX() const noexcept {
-			return m_position.x;
-		}
-
-		int GetPosY() const noexcept {
-			return m_position.y;
+		MouseButtons GetButton() const noexcept {
+			return m_button;
 		}
 	};
 
