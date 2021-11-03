@@ -64,9 +64,9 @@ public:
 public:
 	virtual ~IMouse() = default;
 
-	virtual Vector2 GetPos() const noexcept = 0;
-	virtual int GetPosX() const noexcept = 0;
-	virtual int GetPosY() const noexcept = 0;
+	virtual Vector2 GetPosDelta() const noexcept = 0;
+	virtual int GetPosDX() const noexcept = 0;
+	virtual int GetPosDY() const noexcept = 0;
 	virtual float GetMouseTicks() const noexcept = 0;
 	virtual Event Read() noexcept = 0;
 
@@ -78,7 +78,7 @@ public:
 
 	virtual void SetPressState(std::uint16_t mouseState) noexcept = 0;
 	virtual void SetReleaseState(std::uint16_t mouseState) noexcept = 0;
-	virtual void OnMouseMove(int x, int y) noexcept = 0;
+	virtual void OnMouseMove(int dx, int dy) noexcept = 0;
 	virtual void OnMouseLeave() noexcept = 0;
 	virtual void OnMouseEnter() noexcept = 0;
 	virtual void OnWheelDelta(short delta) noexcept = 0;
