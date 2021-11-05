@@ -199,7 +199,10 @@ LRESULT WinWindow::HandleMsg(
 	}
 	// Clear keystate when window loses focus to prevent input getting stuck
 	case WM_KILLFOCUS: {
-		GetInputManagerInstance()->ClearInputStates();
+		InputManager* inputRef = GetInputManagerInstance();
+
+		if (inputRef)
+			inputRef->ClearInputStates();
 
 		break;
 	}
