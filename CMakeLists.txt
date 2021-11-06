@@ -61,13 +61,23 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(InputManager)
 
-FetchContent_Declare(
-    GraphicsEngine
-    GIT_REPOSITORY https://github.com/razerx100/GaiaX.git
-    GIT_TAG master
-)
+if(GRAPHICS_ENGINE STREQUAL "GaiaX")
+    FetchContent_Declare(
+        GraphicsEngine
+        GIT_REPOSITORY https://github.com/razerx100/GaiaX.git
+        GIT_TAG master
+    )
 
-FetchContent_MakeAvailable(GraphicsEngine)
+    FetchContent_MakeAvailable(GraphicsEngine)
+elseif(GRAPHICS_ENGINE STREQUAL "Terra")
+    FetchContent_Declare(
+        GraphicsEngine
+        GIT_REPOSITORY https://github.com/razerx100/Terra.git
+        GIT_TAG master
+    )
+
+    FetchContent_MakeAvailable(GraphicsEngine)
+endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     ${CMAKE_BINARY_DIR}/lib/$<$<CONFIG:DEBUG>:Debug>$<$<CONFIG:RELEASE>:Release>/InputManager.lib
