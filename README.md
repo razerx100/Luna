@@ -3,7 +3,7 @@ Window module using Win32. Currently dependent on Pluto for Input managing and G
 
 # Dependencies
 1. [Pluto](https://github.com/razerx100/Pluto).
-2. [GaiaX](https://github.com/razerx100/GaiaX) or [Terra](https://github.com/razerx100/GaiaX)
+2. [GaiaX](https://github.com/razerx100/GaiaX) or [Terra](https://github.com/razerx100/GaiaX).
 
 # Third party library Used
 ImGui
