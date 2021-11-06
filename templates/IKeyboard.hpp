@@ -2,9 +2,7 @@
 #define __IKEYBOARD_HPP__
 #include <cstdint>
 
-#define PLUTO_DLL __declspec(dllimport)
-
-enum class PLUTO_DLL SKeyCodes {
+enum class __declspec(dllimport) SKeyCodes {
 	Default,
 	BackSpace,
 	Tab,
@@ -49,7 +47,7 @@ enum class PLUTO_DLL SKeyCodes {
 	QuoteUS
 };
 
-class PLUTO_DLL IKeyboard {
+class __declspec(dllimport) IKeyboard {
 public:
 	class Event {
 	public:

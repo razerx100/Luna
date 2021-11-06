@@ -501,6 +501,10 @@ void* WinWindow::GetWindowHandle() const noexcept {
 	return reinterpret_cast<void*>(m_hWnd);
 }
 
+void* WinWindow::GetModuleInstance() const noexcept {
+	return reinterpret_cast<void*>(m_windowClass.GetHInstance());
+}
+
 HICON WinWindow::LoadIconFromPath(const char* iconPath) {
 	std::string relativePath = std::filesystem::current_path().string();
 

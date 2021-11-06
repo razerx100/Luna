@@ -1,14 +1,12 @@
 #ifndef __IMOUSE_HPP__
 #define __IMOUSE_HPP__
 
-#define PLUTO_DLL __declspec(dllimport)
-
-struct PLUTO_DLL Vector2 {
+struct __declspec(dllimport) Vector2 {
 	int x;
 	int y;
 };
 
-enum class PLUTO_DLL MouseButtons {
+enum class __declspec(dllimport) MouseButtons {
 	Left,
 	Right,
 	Middle,
@@ -17,7 +15,7 @@ enum class PLUTO_DLL MouseButtons {
 	Invalid
 };
 
-class PLUTO_DLL IMouse {
+class __declspec(dllimport) IMouse {
 public:
 	class Event {
 	public:

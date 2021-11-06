@@ -2,9 +2,7 @@
 #define __I_GAMEPAD_HPP__
 #include <cstdint>
 
-#define PLUTO_DLL __declspec(dllimport)
-
-enum class PLUTO_DLL XBoxButton {
+enum class __declspec(dllimport) XBoxButton {
 	UP,
 	DOWN,
 	LEFT,
@@ -22,13 +20,13 @@ enum class PLUTO_DLL XBoxButton {
 	Invalid
 };
 
-struct PLUTO_DLL ASData {
+struct __declspec(dllimport) ASData {
 	float magnitude;
 	float xDirection;
 	float yDirection;
 };
 
-class PLUTO_DLL IGamepad {
+class __declspec(dllimport) IGamepad {
 public:
 	class Event {
 	public:

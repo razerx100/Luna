@@ -5,19 +5,19 @@
 #include "IGamepad.hpp"
 #include <vector>
 
-enum class PLUTO_DLL DeviceType {
+enum class __declspec(dllimport) DeviceType {
 	Keyboard,
 	Mouse,
 	Gamepad,
 	DeviceTypeCount
 };
 
-struct PLUTO_DLL GamepadData {
+struct __declspec(dllimport) GamepadData {
 	IGamepad* pGamepad = nullptr;
 	std::uint8_t index = 0u;
 };
 
-class PLUTO_DLL InputManager {
+class __declspec(dllimport) InputManager {
 public:
 	virtual ~InputManager() = default;
 
@@ -45,7 +45,7 @@ public:
 	virtual void ClearInputStates() noexcept = 0;
 };
 
-PLUTO_DLL InputManager* __cdecl GetInputManagerInstance() noexcept;
-PLUTO_DLL void __cdecl InitInputManagerInstance();
-PLUTO_DLL void __cdecl CleanUpInputManagerInstance() noexcept;
+__declspec(dllimport) InputManager* __cdecl GetInputManagerInstance() noexcept;
+__declspec(dllimport) void __cdecl InitInputManagerInstance();
+__declspec(dllimport) void __cdecl CleanUpInputManagerInstance() noexcept;
 #endif

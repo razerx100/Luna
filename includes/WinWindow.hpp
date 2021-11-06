@@ -34,6 +34,7 @@ public:
 
 	bool IsCursorEnabled() const noexcept override;
 	void* GetWindowHandle() const noexcept override;
+	void* GetModuleInstance() const noexcept override;
 
 	void SetTitle(const char* title) override;
 	void SetWindowIcon(const char* iconPath) override;

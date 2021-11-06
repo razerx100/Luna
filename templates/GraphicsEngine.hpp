@@ -2,23 +2,21 @@
 #define __GRAPHICS_ENGINE_HPP__
 #include <cstdint>
 
-#define GAIAX_DLL __declspec(dllimport)
-
-struct GAIAX_DLL SRect {
+struct __declspec(dllimport) SRect {
 	long left;
 	long top;
 	long right;
 	long bottom;
 };
 
-struct GAIAX_DLL Color {
+struct __declspec(dllimport) Color {
 	float r;
 	float g;
 	float b;
 	float a;
 };
 
-class GAIAX_DLL GraphicsEngine {
+class __declspec(dllimport) GraphicsEngine {
 public:
 	virtual ~GraphicsEngine() = default;
 
@@ -29,11 +27,13 @@ public:
 	virtual SRect GetMonitorCoordinates() = 0;
 };
 
-GAIAX_DLL GraphicsEngine* __cdecl GetGraphicsEngineInstance() noexcept;
-GAIAX_DLL void __cdecl InitGraphicsEngineInstance(
-	void* windowHandle, std::uint32_t width, std::uint32_t height,
+__declspec(dllimport) GraphicsEngine* __cdecl GetGraphicsEngineInstance() noexcept;
+__declspec(dllimport) void __cdecl InitGraphicsEngineInstance(
+	void* windowHandle,
+	void* moduleHandle,
+	std::uint32_t width, std::uint32_t height,
 	std::uint8_t bufferCount = 2u
 );
-GAIAX_DLL void __cdecl CleanUpGraphicsEngineInstance() noexcept;
+__declspec(dllimport) void __cdecl CleanUpGraphicsEngineInstance() noexcept;
 
 #endif
