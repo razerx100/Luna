@@ -1,5 +1,5 @@
 # Luna
-Window module using Win32. Currently dependent on Pluto for Input managing and GaiaX or Terra for monitor's co-ordinate.Both of these can be replaced with similar Input and Graphics modules implementing the required interface.
+Window module using Win32. Currently dependent on Pluto for Input managing and GaiaX or Terra for monitor's co-ordinate. Both of these can be replaced with similar Input and Graphics modules implementing the required interface.
 
 # Dependencies
 1. [Pluto](https://github.com/razerx100/Pluto).
