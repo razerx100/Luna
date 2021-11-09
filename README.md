@@ -9,7 +9,7 @@ Window module using Win32. Currently dependent on Pluto for Input managing and G
 ImGui
 
 ## Instructions
-Run the appropriate Setup script to configure the project with or without ImGui. Use the ones with VK suffix for using Vulkan renderer or Dx12 suffix for Directx12 renderer.
+Run the appropriate Setup script to configure the project with or without ImGui. Use the ones with VK suffix for using Vulkan renderer or Dx12 suffix for Directx12 renderer. The setup scripts use the ***Visual Studio 17 2022*** generator for project generation. But ***Visual Studio 16 2019*** generator should work as well.
 
 ## Requirements
 cmake 3.21+.\
