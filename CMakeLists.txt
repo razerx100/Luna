@@ -28,7 +28,7 @@ add_library(${PROJECT_NAME} SHARED
     ${SRC}
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE includes/ exports/ includes/Graphics/ includes/Exceptions/ templates/)
+target_include_directories(${PROJECT_NAME} PRIVATE includes/ exports/ includes/Exceptions/ templates/)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "$<$<CONFIG:DEBUG>:_DEBUG>" "$<$<CONFIG:RELEASE>:NDEBUG>" BUILD_LUNA)
 
