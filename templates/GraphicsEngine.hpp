@@ -25,6 +25,7 @@ public:
 	virtual void Render() = 0;
 	virtual void Resize(std::uint32_t width, std::uint32_t height) = 0;
 	virtual SRect GetMonitorCoordinates() = 0;
+	virtual void WaitForAsyncTasks() = 0;
 };
 
 __declspec(dllimport) GraphicsEngine* __cdecl GetGraphicsEngineInstance() noexcept;
