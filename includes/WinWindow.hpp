@@ -33,6 +33,7 @@ public:
 	WinWindow& operator=(const WinWindow&) = delete;
 
 	bool IsCursorEnabled() const noexcept override;
+	bool IsMinimized() const noexcept override;
 	void* GetWindowHandle() const noexcept override;
 	void* GetModuleInstance() const noexcept override;
 
@@ -77,6 +78,7 @@ private:
 	WindowClass m_windowClass;
 
 	bool m_cursorEnabled;
+	bool m_isMinimized;
 	std::vector<std::uint8_t> m_rawInputBuffer;
 };
 

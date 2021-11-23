@@ -50,7 +50,7 @@ HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
 WinWindow::WinWindow(int width, int height, const char* name)
 	: m_width(width), m_height(height), m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
-	m_cursorEnabled(true) {
+	m_cursorEnabled(true), m_isMinimized(false) {
 
 	m_windowClass.Register();
 
@@ -210,11 +210,16 @@ LRESULT WinWindow::HandleMsg(
 		RECT clientRect = {};
 		GetClientRect(m_hWnd, &clientRect);
 
-		m_width = clientRect.right - clientRect.left;
-		m_height = clientRect.bottom - clientRect.top;
+		if (wParam != SIZE_MINIMIZED) {
+			m_isMinimized = false;
+			m_width = clientRect.right - clientRect.left;
+			m_height = clientRect.bottom - clientRect.top;
 
-		if (GetGraphicsEngineInstance())
-			GetGraphicsEngineInstance()->Resize(m_width, m_height);
+			if (GetGraphicsEngineInstance())
+				GetGraphicsEngineInstance()->Resize(m_width, m_height);
+		}
+		else
+			m_isMinimized = true;
 
 		if(!m_cursorEnabled)
 			ConfineCursor();
@@ -549,4 +554,8 @@ ASData WinWindow::ProcessASMagnitude(
 	data.magnitude = ProcessDeadZone(magnitude, 32767u, deadZone);
 
 	return data;
+}
+
+bool WinWindow::IsMinimized() const noexcept {
+	return m_isMinimized;
 }
