@@ -1,20 +1,7 @@
 #ifndef __GRAPHICS_ENGINE_HPP__
 #define __GRAPHICS_ENGINE_HPP__
 #include <cstdint>
-
-struct __declspec(dllimport) SRect {
-	long left;
-	long top;
-	long right;
-	long bottom;
-};
-
-struct __declspec(dllimport) Color {
-	float r;
-	float g;
-	float b;
-	float a;
-};
+#include "SUtility.hpp"
 
 class __declspec(dllimport) GraphicsEngine {
 public:
