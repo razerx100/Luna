@@ -14,6 +14,8 @@ void InitWindowInstance(
 }
 
 void CleanUpWindowInstance() noexcept {
-	if (s_pWindow)
+	if (s_pWindow) {
 		delete s_pWindow;
+		s_pWindow = nullptr;
+	}
 }
