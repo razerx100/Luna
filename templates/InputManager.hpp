@@ -1,8 +1,8 @@
 #ifndef __INPUT_MANAGER_HPP__
 #define __INPUT_MANAGER_HPP__
-#include "IKeyboard.hpp"
-#include "IMouse.hpp"
-#include "IGamepad.hpp"
+#include <IKeyboard.hpp>
+#include <IMouse.hpp>
+#include <IGamepad.hpp>
 #include <vector>
 
 enum class __declspec(dllimport) DeviceType {
