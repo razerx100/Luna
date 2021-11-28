@@ -437,8 +437,15 @@ void WinWindow::ToggleFullScreenMode() {
 		if (GetGraphicsEngineInstance()) {
 			RECT renderingMonitorCoordinate = {};
 
-			SRect sRect = GetGraphicsEngineInstance()->GetMonitorCoordinates();
-			renderingMonitorCoordinate = *reinterpret_cast<RECT*>(&sRect);
+			std::uint64_t rectCoord[4];
+			GetGraphicsEngineInstance()->GetMonitorCoordinates(
+				rectCoord
+			);
+
+			renderingMonitorCoordinate.left = static_cast<std::int64_t>(rectCoord[0]);
+			renderingMonitorCoordinate.right = static_cast<std::int64_t>(rectCoord[1]);
+			renderingMonitorCoordinate.top = static_cast<std::int64_t>(rectCoord[2]);
+			renderingMonitorCoordinate.bottom = static_cast<std::int64_t>(rectCoord[3]);
 
 			SetWindowPos(
 				m_hWnd,

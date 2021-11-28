@@ -1,19 +1,16 @@
 #ifndef __GRAPHICS_ENGINE_HPP__
 #define __GRAPHICS_ENGINE_HPP__
 #include <cstdint>
-#include <SUtility.hpp>
-#include <IModel.hpp>
-#include <DirectXColors.h>
 
 class __declspec(dllimport) GraphicsEngine {
 public:
 	virtual ~GraphicsEngine() = default;
 
-	virtual void SetBackgroundColor(DirectX::XMVECTORF32 color) noexcept = 0;
-	virtual void SubmitModels(const IModel* const models, std::uint32_t modelCount) = 0;
+	virtual void SetBackgroundColor(const float* colorVector) noexcept = 0;
+	virtual void SubmitModels(const class IModel* const models, std::uint32_t modelCount) = 0;
 	virtual void Render() = 0;
 	virtual void Resize(std::uint32_t width, std::uint32_t height) = 0;
-	virtual SRect GetMonitorCoordinates() = 0;
+	virtual void GetMonitorCoordinates(std::uint64_t* rect4Elements) = 0;
 	virtual void WaitForAsyncTasks() = 0;
 };
 
