@@ -1,7 +1,7 @@
 #include <WinWindow.hpp>
 #include <WindowThrowMacros.hpp>
 #include <filesystem>
-#include <GraphicsEngine.hpp>
+#include <IGraphicsEngine.hpp>
 #include <hidusage.h>
 #include <Xinput.h>
 
@@ -437,15 +437,14 @@ void WinWindow::ToggleFullScreenMode() {
 		if (GetGraphicsEngineInstance()) {
 			RECT renderingMonitorCoordinate = {};
 
-			std::uint64_t rectCoord[4];
+			std::uint64_t width = 0u;
+			std::uint64_t height = 0u;
 			GetGraphicsEngineInstance()->GetMonitorCoordinates(
-				rectCoord
+				width, height
 			);
 
-			renderingMonitorCoordinate.left = static_cast<std::int64_t>(rectCoord[0]);
-			renderingMonitorCoordinate.right = static_cast<std::int64_t>(rectCoord[1]);
-			renderingMonitorCoordinate.top = static_cast<std::int64_t>(rectCoord[2]);
-			renderingMonitorCoordinate.bottom = static_cast<std::int64_t>(rectCoord[3]);
+			renderingMonitorCoordinate.right = static_cast<std::int64_t>(width);
+			renderingMonitorCoordinate.bottom = static_cast<std::int64_t>(height);
 
 			SetWindowPos(
 				m_hWnd,
