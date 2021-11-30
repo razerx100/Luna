@@ -51,41 +51,4 @@ if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast /MP /EHa /Ot)
 endif()
 
-include(FetchContent)
-
-FetchContent_Declare(
-    ${INPUT_MANAGER}
-    GIT_REPOSITORY https://github.com/razerx100/Pluto.git
-    GIT_TAG master
-)
-
-FetchContent_MakeAvailable(${INPUT_MANAGER})
-
-if(GRAPHICS_ENGINE STREQUAL "GaiaX")
-    FetchContent_Declare(
-        ${GRAPHICS_ENGINE}
-        GIT_REPOSITORY https://github.com/razerx100/GaiaX.git
-        GIT_TAG master
-    )
-
-    FetchContent_MakeAvailable(${GRAPHICS_ENGINE})
-elseif(GRAPHICS_ENGINE STREQUAL "Terra")
-    FetchContent_Declare(
-        ${GRAPHICS_ENGINE}
-        GIT_REPOSITORY https://github.com/razerx100/Terra.git
-        GIT_TAG master
-    )
-
-    FetchContent_MakeAvailable(${GRAPHICS_ENGINE})
-endif()
-
-target_link_libraries(${PROJECT_NAME} PUBLIC
-    ${CMAKE_BINARY_DIR}/lib/$<$<CONFIG:DEBUG>:Debug>$<$<CONFIG:RELEASE>:Release>/InputManager.lib
-    ${CMAKE_BINARY_DIR}/lib/$<$<CONFIG:DEBUG>:Debug>$<$<CONFIG:RELEASE>:Release>/GraphicsEngine.lib
-)
-
-add_dependencies(${PROJECT_NAME} ${INPUT_MANAGER} ${GRAPHICS_ENGINE})
-
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "RenderWindow")
-
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})

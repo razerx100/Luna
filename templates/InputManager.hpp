@@ -3,7 +3,6 @@
 #include <IKeyboard.hpp>
 #include <IMouse.hpp>
 #include <IGamepad.hpp>
-#include <vector>
 
 enum class __declspec(dllimport) DeviceType {
 	Keyboard,
@@ -28,13 +27,14 @@ public:
 		std::uint64_t handle
 	) noexcept = 0;
 
-	virtual std::uint32_t GetKeyboardCount() const noexcept = 0;
-	virtual std::uint32_t GetMouseCount() const noexcept = 0;
-	virtual std::uint32_t GetGamepadCount() const noexcept = 0;
+	virtual void GetKeyboardRefs(
+		IKeyboard** keyboards, std::uint32_t& keyboardCount
+	) const noexcept = 0;
+	virtual void GetMouseRefs(IMouse** mouses, std::uint32_t& mouseCount) const noexcept = 0;
+	virtual void GetGamepadRefs(
+		IGamepad** gamepads, std::uint32_t& gamepadCount
+	) const noexcept = 0;
 
-	virtual std::vector<IKeyboard*> GetKeyboardRefs() noexcept = 0;
-	virtual std::vector<IMouse*> GetMouseRefs() noexcept = 0;
-	virtual std::vector<IGamepad*> GetGamepadRefs() noexcept = 0;
 	virtual	IKeyboard* GetKeyboardByIndex(std::uint32_t index = 0u) const noexcept = 0;
 	virtual	IMouse* GetMouseByIndex(std::uint32_t index = 0u) const noexcept = 0;
 	virtual	IGamepad* GetGamepadByIndex(std::uint32_t index = 0u) const noexcept = 0;
@@ -45,7 +45,4 @@ public:
 	virtual void ClearInputStates() noexcept = 0;
 };
 
-__declspec(dllimport) InputManager* __cdecl GetInputManagerInstance() noexcept;
-__declspec(dllimport) void __cdecl InitInputManagerInstance();
-__declspec(dllimport) void __cdecl CleanUpInputManagerInstance() noexcept;
 #endif

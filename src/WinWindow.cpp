@@ -47,8 +47,9 @@ HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
 }
 
 // Window
-WinWindow::WinWindow(int width, int height, const char* name)
-	: m_width(width), m_height(height), m_fullScreenMode(false),
+WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* name)
+	: m_pInputManagerRef(ioMan), m_pGraphicsEngineRef(nullptr),
+	m_width(width), m_height(height), m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
 	m_cursorEnabled(true), m_isMinimized(false) {
 
@@ -75,19 +76,18 @@ WinWindow::WinWindow(int width, int height, const char* name)
 
 	ShowWindow(m_hWnd, SW_SHOWDEFAULT);
 
-	if ((m_pInputManagerRef = GetInputManagerInstance()) == nullptr)
-		throw GenericException(
-			__LINE__, __FILE__,
-			"No Input Manager Object Initialized."
-		);
-
 #ifdef _IMGUI
 	ImGui_ImplWin32_Init(m_hWnd);
 #endif
 	std::vector<RAWINPUTDEVICE> rIDs;
-	std::uint32_t keyboardCount = m_pInputManagerRef->GetKeyboardCount();
-	std::uint32_t mouseCount = m_pInputManagerRef->GetMouseCount();
-	std::uint32_t gamepadCount = m_pInputManagerRef->GetGamepadCount();
+	std::uint32_t keyboardCount = 0u;
+	m_pInputManagerRef->GetKeyboardRefs(nullptr, keyboardCount);
+
+	std::uint32_t mouseCount = 0u;
+	m_pInputManagerRef->GetMouseRefs(nullptr, mouseCount);
+
+	std::uint32_t gamepadCount = 0u;
+	m_pInputManagerRef->GetGamepadRefs(nullptr, gamepadCount);
 
 	if (gamepadCount >= 5u)
 		throw GenericException(
@@ -119,7 +119,9 @@ WinWindow::WinWindow(int width, int height, const char* name)
 			}
 		);
 
-	std::vector<IGamepad*> pGamepadRefs = m_pInputManagerRef->GetGamepadRefs();
+	std::vector<IGamepad*> pGamepadRefs(gamepadCount);
+	m_pInputManagerRef->GetGamepadRefs(pGamepadRefs.data(), gamepadCount);
+
 	for (IGamepad* gamepad : pGamepadRefs) {
 		if(!gamepad->GetLeftThumbStickDeadZone())
 			gamepad->SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
@@ -199,10 +201,8 @@ LRESULT WinWindow::HandleMsg(
 	}
 	// Clear keystate when window loses focus to prevent input getting stuck
 	case WM_KILLFOCUS: {
-		InputManager* inputRef = GetInputManagerInstance();
-
-		if (inputRef)
-			inputRef->ClearInputStates();
+		if (m_pInputManagerRef)
+			m_pInputManagerRef->ClearInputStates();
 
 		break;
 	}
@@ -215,8 +215,8 @@ LRESULT WinWindow::HandleMsg(
 			m_width = clientRect.right - clientRect.left;
 			m_height = clientRect.bottom - clientRect.top;
 
-			if (GetGraphicsEngineInstance())
-				GetGraphicsEngineInstance()->Resize(m_width, m_height);
+			if (m_pGraphicsEngineRef)
+				m_pGraphicsEngineRef->Resize(m_width, m_height);
 		}
 		else
 			m_isMinimized = true;
@@ -237,7 +237,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	case WM_INPUT_DEVICE_CHANGE: {
 		if (wParam == GIDC_REMOVAL)
-			GetInputManagerInstance()->DeviceDisconnected(
+			m_pInputManagerRef->DeviceDisconnected(
 				static_cast<std::uint64_t>(lParam)
 			);
 
@@ -256,7 +256,7 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		GetInputManagerInstance()->GetKeyboardByIndex()->OnChar(
+		m_pInputManagerRef->GetKeyboardByIndex()->OnChar(
 			static_cast<char>(wParam)
 		);
 
@@ -434,12 +434,12 @@ void WinWindow::ToggleFullScreenMode() {
 		);
 
 		// Needed for multi monitor setups
-		if (GetGraphicsEngineInstance()) {
+		if (m_pGraphicsEngineRef) {
 			RECT renderingMonitorCoordinate = {};
 
 			std::uint64_t width = 0u;
 			std::uint64_t height = 0u;
-			GetGraphicsEngineInstance()->GetMonitorCoordinates(
+			m_pGraphicsEngineRef->GetMonitorCoordinates(
 				width, height
 			);
 
@@ -564,4 +564,8 @@ ASData WinWindow::ProcessASMagnitude(
 
 bool WinWindow::IsMinimized() const noexcept {
 	return m_isMinimized;
+}
+
+void WinWindow::SetGraphicsEngineRef(GraphicsEngine* gfxEngine) noexcept {
+	m_pGraphicsEngineRef = gfxEngine;
 }

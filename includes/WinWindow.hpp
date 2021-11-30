@@ -4,6 +4,7 @@
 #include <Window.hpp>
 #include <vector>
 #include <InputManager.hpp>
+#include <IGraphicsEngine.hpp>
 
 class WinWindow : public Window {
 private:
@@ -26,7 +27,7 @@ private:
 	};
 
 public:
-	WinWindow(int width, int height, const char* name);
+	WinWindow(int width, int height, InputManager* ioMan, const char* name);
 	~WinWindow() noexcept;
 
 	WinWindow(const WinWindow&) = delete;
@@ -38,6 +39,8 @@ public:
 	void* GetModuleInstance() const noexcept override;
 
 	void SetTitle(const char* title) override;
+	void SetGraphicsEngineRef(GraphicsEngine* gfxEngine) noexcept override;
+
 	void SetWindowIcon(const char* iconPath) override;
 	void EnableCursor() noexcept override;
 	void DisableCursor() noexcept override;
@@ -66,6 +69,7 @@ private:
 
 private:
 	InputManager* m_pInputManagerRef;
+	GraphicsEngine* m_pGraphicsEngineRef;
 
 private:
 	int m_width;
