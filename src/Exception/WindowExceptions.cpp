@@ -33,8 +33,8 @@ void ExceptionMessageBox(
 	const char* exceptionDetails,
 	const char* exceptionType
 ) {
-	while (S_OK != MessageBoxA(
+	MessageBoxA(
 		nullptr, exceptionDetails, exceptionType,
 		MB_OK | MB_ICONEXCLAMATION
-	));
+	);
 }

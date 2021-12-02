@@ -154,9 +154,8 @@ WinWindow::~WinWindow() noexcept {
 #endif
 
 	SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(
-		DefDlgProcA)
+		DefWindowProcA)
 	);
-	PostQuitMessage(0);
 }
 
 LRESULT CALLBACK WinWindow::HandleMsgSetup(
@@ -401,7 +400,7 @@ void WinWindow::SetTitle(const char* title) {
 int WinWindow::Update() {
 	MSG msg = {};
 
-	while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE)) {
+	while (PeekMessageA(&msg, m_hWnd, 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT)
 			return static_cast<int>(msg.wParam);
 
