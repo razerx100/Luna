@@ -400,7 +400,7 @@ void WinWindow::SetTitle(const char* title) {
 int WinWindow::Update() {
 	MSG msg = {};
 
-	while (PeekMessageA(&msg, m_hWnd, 0, 0, PM_REMOVE)) {
+	while (PeekMessageA(&msg, nullptr , 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT)
 			return static_cast<int>(msg.wParam);
 
