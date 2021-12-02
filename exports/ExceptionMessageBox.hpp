@@ -7,7 +7,7 @@
 #define LUNA_DLL __declspec(dllimport)
 #endif
 
-LUNA_DLL void _cdecl ExceptionMessageBox(
+LUNA_DLL void __cdecl ExceptionMessageBox(
 	const char* exceptionDetails,
 	const char* exceptionType
 );

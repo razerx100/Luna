@@ -152,6 +152,11 @@ WinWindow::~WinWindow() noexcept {
 #ifdef _IMGUI
 	ImGui_ImplWin32_Shutdown();
 #endif
+
+	SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(
+		DefDlgProcA)
+	);
+	PostQuitMessage(0);
 }
 
 LRESULT CALLBACK WinWindow::HandleMsgSetup(
