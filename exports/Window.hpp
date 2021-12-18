@@ -24,6 +24,7 @@ public:
 
 	virtual bool IsCursorEnabled() const noexcept = 0;
 	virtual bool IsMinimized() const noexcept = 0;
+	virtual float GetAspectRatio() const noexcept = 0;
 	virtual void* GetWindowHandle() const noexcept = 0;
 	virtual void* GetModuleInstance() const noexcept = 0;
 };

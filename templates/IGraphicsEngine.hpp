@@ -12,7 +12,7 @@ public:
 
 	virtual void SetBackgroundColor(const Ceres::VectorF32& colorVector) noexcept = 0;
 	virtual void SubmitModels(
-		class IModel* models, std::uint32_t modelCount,
+		class IModel** models, std::uint32_t modelCount,
 		bool texture = true
 	) = 0;
 	virtual void Render() = 0;

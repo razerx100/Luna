@@ -573,3 +573,7 @@ bool WinWindow::IsMinimized() const noexcept {
 void WinWindow::SetGraphicsEngineRef(GraphicsEngine* gfxEngine) noexcept {
 	m_pGraphicsEngineRef = gfxEngine;
 }
+
+float WinWindow::GetAspectRatio() const noexcept {
+	return static_cast<float>(m_width) / m_height;
+}

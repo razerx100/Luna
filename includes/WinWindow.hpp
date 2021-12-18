@@ -35,6 +35,7 @@ public:
 
 	bool IsCursorEnabled() const noexcept override;
 	bool IsMinimized() const noexcept override;
+	float GetAspectRatio() const noexcept override;
 	void* GetWindowHandle() const noexcept override;
 	void* GetModuleInstance() const noexcept override;
 
