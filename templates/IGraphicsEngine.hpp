@@ -11,10 +11,7 @@ public:
 	virtual ~GraphicsEngine() = default;
 
 	virtual void SetBackgroundColor(const Ceres::VectorF32& colorVector) noexcept = 0;
-	virtual void SubmitModels(
-		class IModel** models, std::uint32_t modelCount,
-		bool texture = true
-	) = 0;
+	virtual void SubmitModel(const class IModel* const modelRef, bool texture = true) = 0;
 	virtual void Render() = 0;
 	virtual void Resize(std::uint32_t width, std::uint32_t height) = 0;
 	virtual void GetMonitorCoordinates(
