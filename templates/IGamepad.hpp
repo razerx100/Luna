@@ -66,22 +66,27 @@ public:
 			m_button(button),
 			m_data{} {}
 
+		[[nodiscard]]
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
 		}
 
+		[[nodiscard]]
 		Type GetType() const noexcept {
 			return m_type;
 		}
 
+		[[nodiscard]]
 		ASData GetASData() const noexcept {
 			return m_data;
 		}
 
+		[[nodiscard]]
 		float GetMagnitude() const noexcept {
 			return m_data.magnitude;
 		}
 
+		[[nodiscard]]
 		XBoxButton GetButton() const noexcept {
 			return m_button;
 		}
@@ -92,9 +97,12 @@ public:
 
 	virtual void ClearState() noexcept = 0;
 
+	[[nodiscard]]
 	virtual Event Read() noexcept = 0;
 
+	[[nodiscard]]
 	virtual bool IsButtonPressed(XBoxButton button) const noexcept = 0;
+	[[nodiscard]]
 	virtual bool AreButtonsPressed(int count, ...) const noexcept = 0;
 
 	virtual void OnLeftThumbStickMove(ASData data) noexcept = 0;
@@ -107,8 +115,11 @@ public:
 	virtual void SetRightThumbStickDeadZone(std::uint32_t deadzone) noexcept = 0;
 	virtual void SetTriggerThreshold(std::uint32_t threshold) noexcept = 0;
 
+	[[nodiscard]]
 	virtual std::uint32_t GetLeftThumbStickDeadZone() const noexcept = 0;
+	[[nodiscard]]
 	virtual std::uint32_t GetRightThumbStickDeadZone() const noexcept = 0;
+	[[nodiscard]]
 	virtual std::uint32_t GetTriggerThreshold() const noexcept = 0;
 };
 #endif

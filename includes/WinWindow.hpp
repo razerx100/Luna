@@ -33,21 +33,27 @@ public:
 	WinWindow(const WinWindow&) = delete;
 	WinWindow& operator=(const WinWindow&) = delete;
 
+	[[nodiscard]]
 	bool IsCursorEnabled() const noexcept override;
+	[[nodiscard]]
 	bool IsMinimized() const noexcept override;
+	[[nodiscard]]
 	float GetAspectRatio() const noexcept override;
+	[[nodiscard]]
 	void* GetWindowHandle() const noexcept override;
+	[[nodiscard]]
 	void* GetModuleInstance() const noexcept override;
 
-	void SetTitle(const char* title) override;
+	void SetTitle(const std::string& title) override;
 	void SetGraphicsEngineRef(GraphicsEngine* gfxEngine) noexcept override;
 
-	void SetWindowIcon(const char* iconPath) override;
+	void SetWindowIcon(const std::string& iconPath) override;
 	void EnableCursor() noexcept override;
 	void DisableCursor() noexcept override;
 	void ConfineCursor() noexcept override;
 	void FreeCursor() noexcept override;
 
+	[[nodiscard]]
 	int Update() override;
 
 private:

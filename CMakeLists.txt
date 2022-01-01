@@ -42,13 +42,7 @@ if(IMGUIFLAG STREQUAL "ENABLE")
 endif()
 
 if(MSVC)
-    string(REPLACE "/W3 " "/W4 " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-    string(REPLACE "/W3 " "/W4 " CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-    string(REPLACE "/W3 " "/W4 " CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-endif()
-
-if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast /MP /EHa /Ot)
+    target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast /MP /EHa /Ot /W4)
 endif()
 
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})

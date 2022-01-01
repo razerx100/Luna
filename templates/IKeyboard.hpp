@@ -66,15 +66,24 @@ public:
 			: m_type(Type::Invalid), m_code(SKeyCodes::Default) {}
 		Event(Type type, SKeyCodes code) noexcept
 			: m_type(type), m_code(code) {}
+
+
+		[[nodiscard]]
 		bool IsPress() const noexcept {
 			return m_type == Type::Press;
 		}
+
+		[[nodiscard]]
 		bool IsRelease() const noexcept {
 			return m_type == Type::Release;
 		}
+
+		[[nodiscard]]
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
 		}
+
+		[[nodiscard]]
 		SKeyCodes GetCode() const noexcept {
 			return m_code;
 		}
@@ -84,12 +93,17 @@ public:
 	virtual ~IKeyboard() = default;
 
 	// key events
+	[[nodiscard]]
 	virtual bool IsKeyPressed(SKeyCodes keycode) const noexcept = 0;
+	[[nodiscard]]
 	virtual bool AreKeysPressed(int count, ...) const noexcept = 0;
+	[[nodiscard]]
 	virtual Event ReadKey() noexcept = 0;
+
 	virtual void FlushKey() noexcept = 0;
 
 	// char events
+	[[nodiscard]]
 	virtual char ReadChar() noexcept = 0;
 	virtual void FlushChar() noexcept = 0;
 	virtual void Flush() noexcept = 0;

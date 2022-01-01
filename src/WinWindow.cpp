@@ -61,7 +61,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 	wr.top = 0;
 	wr.bottom = height;
 	if (!AdjustWindowRect(&wr, m_windowStyle, FALSE))
-		throw HWND_LAST_EXCEPT();
+		throw WIN32_LAST_EXCEPT();
 
 	m_hWnd = CreateWindowEx(
 		0,
@@ -72,7 +72,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 	);
 
 	if (!m_hWnd)
-		throw HWND_LAST_EXCEPT();
+		throw WIN32_LAST_EXCEPT();
 
 	ShowWindow(m_hWnd, SW_SHOWDEFAULT);
 
@@ -80,23 +80,17 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 	ImGui_ImplWin32_Init(m_hWnd);
 #endif
 	std::vector<RAWINPUTDEVICE> rIDs;
-	std::uint32_t keyboardCount = 0u;
-	m_pInputManagerRef->GetKeyboardRefs(nullptr, keyboardCount);
+	std::uint32_t keyboardsCount = m_pInputManagerRef->GetKeyboardsCount();
+	std::uint32_t mousesCount = m_pInputManagerRef->GetMousesCount();
+	std::uint32_t gamepadsCount = m_pInputManagerRef->GetGamepadsCount();
 
-	std::uint32_t mouseCount = 0u;
-	m_pInputManagerRef->GetMouseRefs(nullptr, mouseCount);
-
-	std::uint32_t gamepadCount = 0u;
-	m_pInputManagerRef->GetGamepadRefs(nullptr, gamepadCount);
-
-	if (gamepadCount >= 5u)
-		throw GenericException(
-			__LINE__, __FILE__,
+	if (gamepadsCount >= 5u)
+		WIN32_GENERIC_THROW(
 			"Maximum supported XBox gamepads are four."
 		);
 
 	for (std::uint32_t index = 0u;
-		index < keyboardCount;
+		index < keyboardsCount;
 		++index)
 		rIDs.emplace_back(
 			RAWINPUTDEVICE{
@@ -108,7 +102,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 		);
 
 	for(std::uint32_t index = 0u;
-		index < mouseCount;
+		index < mousesCount;
 		++index)
 		rIDs.emplace_back(
 			RAWINPUTDEVICE{
@@ -119,8 +113,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 			}
 		);
 
-	std::vector<IGamepad*> pGamepadRefs(gamepadCount);
-	m_pInputManagerRef->GetGamepadRefs(pGamepadRefs.data(), gamepadCount);
+	std::vector<IGamepad*> pGamepadRefs = m_pInputManagerRef->GetGamepadRefs();
 
 	for (IGamepad* gamepad : pGamepadRefs) {
 		if(!gamepad->GetLeftThumbStickDeadZone())
@@ -145,7 +138,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 	if (!RegisterRawInputDevices(
 		rIDs.data(), static_cast<std::uint32_t>(rIDs.size()), sizeof(RAWINPUTDEVICE)
 	))
-		throw HWND_LAST_EXCEPT();
+		throw WIN32_LAST_EXCEPT();
 }
 
 WinWindow::~WinWindow() noexcept {
@@ -341,7 +334,7 @@ LRESULT WinWindow::HandleMsg(
 					)
 				);
 
-				std::uint16_t leftStickDeadZone = pGamepadRef.pGamepad->
+				std::uint32_t leftStickDeadZone = pGamepadRef.pGamepad->
 					GetLeftThumbStickDeadZone();
 				if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
 					magnitude > leftStickDeadZone)
@@ -352,7 +345,7 @@ LRESULT WinWindow::HandleMsg(
 						)
 					);
 
-				std::uint16_t rightStickDeadZone = pGamepadRef.pGamepad->
+				std::uint32_t rightStickDeadZone = pGamepadRef.pGamepad->
 					GetRightThumbStickDeadZone();
 				if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
 					magnitude > rightStickDeadZone)
@@ -392,9 +385,9 @@ LRESULT WinWindow::HandleMsg(
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-void WinWindow::SetTitle(const char* title) {
-	if (!SetWindowTextA(m_hWnd, title))
-		throw HWND_LAST_EXCEPT();
+void WinWindow::SetTitle(const std::string& title) {
+	if (!SetWindowTextA(m_hWnd, title.c_str()))
+		throw WIN32_LAST_EXCEPT();
 }
 
 int WinWindow::Update() {
@@ -447,8 +440,8 @@ void WinWindow::ToggleFullScreenMode() {
 				width, height
 			);
 
-			renderingMonitorCoordinate.right = static_cast<std::int64_t>(width);
-			renderingMonitorCoordinate.bottom = static_cast<std::int64_t>(height);
+			renderingMonitorCoordinate.right = static_cast<LONG>(width);
+			renderingMonitorCoordinate.bottom = static_cast<LONG>(height);
 
 			SetWindowPos(
 				m_hWnd,
@@ -530,8 +523,8 @@ HICON WinWindow::LoadIconFromPath(const char* iconPath) {
 		));
 }
 
-void WinWindow::SetWindowIcon(const char* iconPath) {
-	HICON hIcon = LoadIconFromPath(iconPath);
+void WinWindow::SetWindowIcon(const std::string& iconPath) {
+	HICON hIcon = LoadIconFromPath(iconPath.c_str());
 
 	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);

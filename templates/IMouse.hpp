@@ -1,10 +1,8 @@
 #ifndef __IMOUSE_HPP__
 #define __IMOUSE_HPP__
+#include <utility>
 
-struct __declspec(dllimport) Vector2 {
-	int x;
-	int y;
-};
+typedef std::pair<std::int32_t, std::int32_t> PosDelta;
 
 enum class __declspec(dllimport) MouseButtons {
 	Left,
@@ -46,14 +44,17 @@ public:
 			: m_type(type),
 			m_button(button) {}
 
+		[[nodiscard]]
 		bool IsValid() const noexcept {
 			return m_type != Type::Invalid;
 		}
 
+		[[nodiscard]]
 		Type GetType() const noexcept {
 			return m_type;
 		}
 
+		[[nodiscard]]
 		MouseButtons GetButton() const noexcept {
 			return m_button;
 		}
@@ -62,14 +63,22 @@ public:
 public:
 	virtual ~IMouse() = default;
 
-	virtual Vector2 GetPosDelta() const noexcept = 0;
+	[[nodiscard]]
+	virtual PosDelta GetPosDelta() const noexcept = 0;
+	[[nodiscard]]
 	virtual int GetPosDX() const noexcept = 0;
+	[[nodiscard]]
 	virtual int GetPosDY() const noexcept = 0;
+	[[nodiscard]]
 	virtual float GetMouseTicks() const noexcept = 0;
+	[[nodiscard]]
 	virtual Event Read() noexcept = 0;
 
+	[[nodiscard]]
 	virtual bool IsInWindow() const noexcept = 0;
+	[[nodiscard]]
 	virtual bool IsButtonPressed(MouseButtons button) const noexcept = 0;
+	[[nodiscard]]
 	virtual bool AreButtonsPressed(int count, ...) const noexcept = 0;
 
 	virtual void Flush() noexcept = 0;
