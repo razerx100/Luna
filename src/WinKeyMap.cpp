@@ -64,21 +64,21 @@ SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept {
 	return WinKeyMap[nativeKeycode];
 }
 
-static constexpr std::uint16_t mouseReleaseFlag = 0x2AA;
-static constexpr std::uint16_t mousePressFlag = 0x155;
+static constexpr std::uint16_t mouseReleaseFlag = 0x2AAu;
+static constexpr std::uint16_t mousePressFlag = 0x155u;
 
 std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
 	std::uint16_t newState
 ) noexcept {
 	std::uint16_t onFlags = newState & mousePressFlag;
-	std::uint16_t offFlags = (newState & mouseReleaseFlag) >> 1;
+	std::uint16_t offFlags = (newState & mouseReleaseFlag) >> 1u;
 
 	std::uint8_t mapOn = 0u;
 	std::uint8_t mapOff = 0u;
 
-	for (std::uint32_t index = 0, index1 = 0; index < 16u; index += 2, ++index1) {
-		mapOn |= static_cast<bool>(onFlags & (1 << index)) << index1;
-		mapOff |= static_cast<bool>(offFlags & (1 << index)) << index1;
+	for (size_t index = 0, index1 = 0; index < 16u; index += 2, ++index1) {
+		mapOn |= static_cast<bool>(onFlags & (1u << index)) << index1;
+		mapOff |= static_cast<bool>(offFlags & (1u << index)) << index1;
 	}
 
 	return { mapOn, mapOff };
@@ -87,11 +87,11 @@ std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
 std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept {
 	std::uint16_t map = 0u;
 
-	for (std::uint32_t index = 0; index < 12u; ++index)
-		map |= static_cast<bool>(state & (1 << index)) << index;
+	for (size_t index = 0; index < 12u; ++index)
+		map |= static_cast<bool>(state & (1u << index)) << index;
 
-	for (std::uint32_t index = 12, index1 = 10; index < 16u; ++index, ++index1)
-		map |= static_cast<bool>(state & (1 << index)) << index1;
+	for (size_t index = 12, index1 = 10; index < 16u; ++index, ++index1)
+		map |= static_cast<bool>(state & (1u << index)) << index1;
 
 	return map;
 }

@@ -21,6 +21,7 @@ public:
 
 	virtual void SetShaderPath(const char* path) noexcept = 0;
 	virtual void InitResourceBasedObjects() = 0;
+	virtual void ProcessData() = 0;
 };
 
 #endif

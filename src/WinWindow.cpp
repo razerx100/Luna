@@ -80,16 +80,16 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 	ImGui_ImplWin32_Init(m_hWnd);
 #endif
 	std::vector<RAWINPUTDEVICE> rIDs;
-	std::uint32_t keyboardsCount = m_pInputManagerRef->GetKeyboardsCount();
-	std::uint32_t mousesCount = m_pInputManagerRef->GetMousesCount();
-	std::uint32_t gamepadsCount = m_pInputManagerRef->GetGamepadsCount();
+	size_t keyboardsCount = m_pInputManagerRef->GetKeyboardsCount();
+	size_t mousesCount = m_pInputManagerRef->GetMousesCount();
+	size_t gamepadsCount = m_pInputManagerRef->GetGamepadsCount();
 
 	if (gamepadsCount >= 5u)
 		WIN32_GENERIC_THROW(
 			"Maximum supported XBox gamepads are four."
 		);
 
-	for (std::uint32_t index = 0u;
+	for (size_t index = 0u;
 		index < keyboardsCount;
 		++index)
 		rIDs.emplace_back(
@@ -101,7 +101,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 			}
 		);
 
-	for(std::uint32_t index = 0u;
+	for(size_t index = 0u;
 		index < mousesCount;
 		++index)
 		rIDs.emplace_back(
@@ -136,7 +136,7 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 	}
 
 	if (!RegisterRawInputDevices(
-		rIDs.data(), static_cast<std::uint32_t>(rIDs.size()), sizeof(RAWINPUTDEVICE)
+		rIDs.data(), static_cast<UINT>(rIDs.size()), static_cast<UINT>(sizeof(RAWINPUTDEVICE))
 	))
 		throw WIN32_LAST_EXCEPT();
 }
@@ -262,12 +262,12 @@ LRESULT WinWindow::HandleMsg(
 	/************* END KEYBOARD MESSAGES *************/
 	/************* RAW MOUSE MESSAGES *************/
 	case WM_INPUT: {
-		std::uint32_t size = 0;
+		UINT size = 0;
 
 		// Get raw data size with nullptr as buffer
 		if (GetRawInputData(
 			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &size,
-			sizeof(RAWINPUTHEADER)
+			static_cast<UINT>(sizeof(RAWINPUTHEADER))
 		) == -1)
 			break;
 
@@ -277,7 +277,7 @@ LRESULT WinWindow::HandleMsg(
 		if (GetRawInputData(
 			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
 			m_rawInputBuffer.data(), &size,
-			sizeof(RAWINPUTHEADER)
+			static_cast<UINT>(sizeof(RAWINPUTHEADER))
 		) != size)
 			break;
 
@@ -325,7 +325,7 @@ LRESULT WinWindow::HandleMsg(
 			XINPUT_STATE state;
 			ZeroMemory(&state, sizeof(XINPUT_STATE));
 
-			if (XInputGetState(pGamepadRef.index, &state) == ERROR_SUCCESS) {
+			if (XInputGetState(static_cast<DWORD>(pGamepadRef.index), &state) == ERROR_SUCCESS) {
 				XINPUT_GAMEPAD xData = state.Gamepad;
 
 				pGamepadRef.pGamepad->SetRawButtonState(
@@ -390,7 +390,7 @@ void WinWindow::SetTitle(const std::string& title) {
 		throw WIN32_LAST_EXCEPT();
 }
 
-int WinWindow::Update() {
+std::optional<int> WinWindow::Update() {
 	MSG msg = {};
 
 	while (PeekMessageA(&msg, nullptr , 0, 0, PM_REMOVE)) {
@@ -401,7 +401,7 @@ int WinWindow::Update() {
 		DispatchMessage(&msg);
 	}
 
-	return 1;
+	return {};
 }
 
 void WinWindow::ToggleFullScreenMode() {

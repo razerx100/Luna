@@ -103,7 +103,7 @@ public:
 	[[nodiscard]]
 	virtual bool IsButtonPressed(XBoxButton button) const noexcept = 0;
 	[[nodiscard]]
-	virtual bool AreButtonsPressed(int count, ...) const noexcept = 0;
+	virtual bool AreButtonsPressed(size_t count, ...) const noexcept = 0;
 
 	virtual void OnLeftThumbStickMove(ASData data) noexcept = 0;
 	virtual void OnRightThumbStickMove(ASData data) noexcept = 0;

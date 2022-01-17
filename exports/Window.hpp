@@ -2,6 +2,7 @@
 #define __WINDOW_HPP__
 #include <cstdint>
 #include <string>
+#include <optional>
 
 #ifdef BUILD_LUNA
 #define LUNA_DLL __declspec(dllexport)
@@ -17,7 +18,7 @@ public:
 	virtual void SetGraphicsEngineRef(class GraphicsEngine* gfxEngine) noexcept = 0;
 
 	[[nodiscard]]
-	virtual int Update() = 0;
+	virtual std::optional<int> Update() = 0;
 	virtual void SetWindowIcon(const std::string& iconPath) = 0;
 	virtual void EnableCursor() noexcept = 0;
 	virtual void DisableCursor() noexcept = 0;

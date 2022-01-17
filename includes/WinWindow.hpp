@@ -54,7 +54,7 @@ public:
 	void FreeCursor() noexcept override;
 
 	[[nodiscard]]
-	int Update() override;
+	std::optional<int> Update() override;
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
