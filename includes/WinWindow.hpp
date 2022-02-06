@@ -27,7 +27,7 @@ private:
 	};
 
 public:
-	WinWindow(int width, int height, InputManager* ioMan, const char* name);
+	WinWindow(std::uint32_t width, std::uint32_t height, InputManager* ioMan, const char* name);
 	~WinWindow() noexcept;
 
 	WinWindow(const WinWindow&) = delete;
@@ -79,8 +79,8 @@ private:
 	GraphicsEngine* m_pGraphicsEngineRef;
 
 private:
-	int m_width;
-	int m_height;
+	std::uint32_t m_width;
+	std::uint32_t m_height;
 	HWND m_hWnd;
 
 	bool m_fullScreenMode;

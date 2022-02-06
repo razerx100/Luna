@@ -4,6 +4,6 @@
 
 [[nodiscard]]
 LUNA_DLL Window* __cdecl CreateLunaInstance(
-	int width, int height, class InputManager* ioMan, const char* name
+	std::uint32_t width, std::uint32_t height, class InputManager* ioMan, const char* name
 );
 #endif

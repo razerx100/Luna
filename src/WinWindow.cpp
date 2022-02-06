@@ -47,8 +47,10 @@ HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
 }
 
 // Window
-WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* name)
-	: m_pInputManagerRef(ioMan), m_pGraphicsEngineRef(nullptr),
+WinWindow::WinWindow(
+	std::uint32_t width, std::uint32_t height,
+	InputManager* ioMan, const char* name
+) : m_pInputManagerRef(ioMan), m_pGraphicsEngineRef(nullptr),
 	m_width(width), m_height(height), m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
 	m_cursorEnabled(true), m_isMinimized(false) {
@@ -57,9 +59,9 @@ WinWindow::WinWindow(int width, int height, InputManager* ioMan, const char* nam
 
 	RECT wr;
 	wr.left = 0;
-	wr.right = width;
+	wr.right = static_cast<LONG>(width);
 	wr.top = 0;
-	wr.bottom = height;
+	wr.bottom = static_cast<LONG>(height);
 	if (!AdjustWindowRect(&wr, m_windowStyle, FALSE))
 		throw WIN32_LAST_EXCEPT();
 
@@ -209,8 +211,8 @@ LRESULT WinWindow::HandleMsg(
 
 		if (wParam != SIZE_MINIMIZED) {
 			m_isMinimized = false;
-			m_width = clientRect.right - clientRect.left;
-			m_height = clientRect.bottom - clientRect.top;
+			m_width = static_cast<std::uint32_t>(clientRect.right - clientRect.left);
+			m_height = static_cast<std::uint32_t>(clientRect.bottom - clientRect.top);
 
 			if (m_pGraphicsEngineRef)
 				m_pGraphicsEngineRef->Resize(m_width, m_height);
