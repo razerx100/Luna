@@ -13,9 +13,11 @@ public:
 	virtual ~GraphicsEngine() = default;
 
 	[[nodiscard]] // Returns index of the resource in Resource Heap
-	virtual size_t RegisterResource(const void* data, size_t size) = 0;
+	virtual size_t RegisterResource(
+		const void* data, size_t rowPitch, size_t rows
+	) = 0;
 
-	virtual void SetBackgroundColor(const Ceres::Float32_4& colorVector) noexcept = 0;
+	virtual void SetBackgroundColour(const Ceres::Float32_4& colourVector) noexcept = 0;
 	virtual void SubmitModel(const class IModel* const modelRef) = 0;
 	virtual void Render() = 0;
 	virtual void Resize(std::uint32_t width, std::uint32_t height) = 0;
