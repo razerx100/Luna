@@ -57,7 +57,7 @@ static const SKeyCodes WinKeyMap[] = {
 	Default, Default, Default, Default, Default, Default,
 	Default, Default, Default, Default, Default, Default,
 	Default, Default, Default, Default, Default, Default,
-	Default, Default
+	Default, Default, Default
 };
 
 SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept {
