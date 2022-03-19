@@ -14,7 +14,8 @@ public:
 
 	[[nodiscard]] // Returns index of the resource in Resource Heap
 	virtual size_t RegisterResource(
-		const void* data, size_t rowPitch, size_t rows
+		const void* data,
+		size_t width, size_t height, size_t pixelSizeInBytes
 	) = 0;
 
 	virtual void SetBackgroundColour(const Ceres::Float32_4& colourVector) noexcept = 0;
