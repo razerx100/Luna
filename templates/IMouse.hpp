@@ -4,7 +4,7 @@
 
 typedef std::pair<std::int64_t, std::int64_t> PosDelta;
 
-enum class __declspec(dllimport) MouseButtons {
+enum class MouseButtons {
 	Left,
 	Right,
 	Middle,
@@ -13,7 +13,7 @@ enum class __declspec(dllimport) MouseButtons {
 	Invalid
 };
 
-class __declspec(dllimport) IMouse {
+class IMouse {
 public:
 	class Event {
 	public:

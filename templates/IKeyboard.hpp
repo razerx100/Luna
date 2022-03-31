@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <optional>
 
-enum class __declspec(dllimport) SKeyCodes {
+enum class SKeyCodes {
 	Default,
 	BackSpace,
 	Tab,
@@ -48,7 +48,7 @@ enum class __declspec(dllimport) SKeyCodes {
 	QuoteUS
 };
 
-class __declspec(dllimport) IKeyboard {
+class IKeyboard {
 public:
 	class Event {
 	public:

@@ -4,13 +4,7 @@
 #include <string>
 #include <optional>
 
-#ifdef BUILD_LUNA
-#define LUNA_DLL __declspec(dllexport)
-#else
-#define LUNA_DLL __declspec(dllimport)
-#endif
-
-class LUNA_DLL Window {
+class Window {
 public:
 	virtual ~Window() = default;
 

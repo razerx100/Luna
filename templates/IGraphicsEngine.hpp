@@ -2,7 +2,7 @@
 #define __I_GRAPHICS_ENGINE_HPP__
 #include <cstdint>
 
-class __declspec(dllimport) GraphicsEngine {
+class GraphicsEngine {
 public:
 	virtual ~GraphicsEngine() = default;
 

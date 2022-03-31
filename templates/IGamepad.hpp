@@ -2,7 +2,7 @@
 #define __I_GAMEPAD_HPP__
 #include <cstdint>
 
-enum class __declspec(dllimport) XBoxButton {
+enum class XBoxButton {
 	UP,
 	DOWN,
 	LEFT,
@@ -20,13 +20,13 @@ enum class __declspec(dllimport) XBoxButton {
 	Invalid
 };
 
-struct __declspec(dllimport) ASData {
+struct ASData {
 	float magnitude;
 	float xDirection;
 	float yDirection;
 };
 
-class __declspec(dllimport) IGamepad {
+class IGamepad {
 public:
 	class Event {
 	public:
