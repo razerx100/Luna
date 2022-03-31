@@ -5,19 +5,19 @@
 #include <IGamepad.hpp>
 #include <vector>
 
-enum class __declspec(dllimport) DeviceType {
+enum class DeviceType {
 	Keyboard,
 	Mouse,
 	Gamepad,
 	DeviceTypeCount
 };
 
-struct __declspec(dllimport) GamepadData {
+struct GamepadData {
 	IGamepad* pGamepad = nullptr;
 	size_t index = 0u;
 };
 
-class __declspec(dllimport) InputManager {
+class InputManager {
 public:
 	virtual ~InputManager() = default;
 
