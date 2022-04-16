@@ -1,5 +1,5 @@
-#ifndef __WIN32_BASE_EXCEPTION_HPP__
-#define __WIN32_BASE_EXCEPTION_HPP__
+#ifndef WIN32_BASE_EXCEPTION_HPP_
+#define WIN32_BASE_EXCEPTION_HPP_
 #include <Exception.hpp>
 
 class Win32BaseException : public Exception {

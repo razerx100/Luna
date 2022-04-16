@@ -1,5 +1,5 @@
-#ifndef __I_GAMEPAD_HPP__
-#define __I_GAMEPAD_HPP__
+#ifndef I_GAMEPAD_HPP_
+#define I_GAMEPAD_HPP_
 #include <cstdint>
 
 enum class XBoxButton {

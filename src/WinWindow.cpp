@@ -48,10 +48,8 @@ HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
 
 // Window
 WinWindow::WinWindow(
-	std::uint32_t width, std::uint32_t height,
-	InputManager* ioMan, const char* name
-) : m_pInputManagerRef(ioMan), m_pGraphicsEngineRef(nullptr),
-	m_width(width), m_height(height), m_fullScreenMode(false),
+	std::uint32_t width, std::uint32_t height, const char* name
+) : m_width(width), m_height(height), m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
 	m_cursorEnabled(true), m_isMinimized(false) {
 
@@ -81,66 +79,6 @@ WinWindow::WinWindow(
 #ifdef _IMGUI
 	ImGui_ImplWin32_Init(m_hWnd);
 #endif
-	std::vector<RAWINPUTDEVICE> rIDs;
-	size_t keyboardsCount = m_pInputManagerRef->GetKeyboardsCount();
-	size_t mousesCount = m_pInputManagerRef->GetMousesCount();
-	size_t gamepadsCount = m_pInputManagerRef->GetGamepadsCount();
-
-	if (gamepadsCount >= 5u)
-		WIN32_GENERIC_THROW(
-			"Maximum supported XBox gamepads are four."
-		);
-
-	for (size_t index = 0u;
-		index < keyboardsCount;
-		++index)
-		rIDs.emplace_back(
-			RAWINPUTDEVICE{
-				HID_USAGE_PAGE_GENERIC,
-				HID_USAGE_GENERIC_KEYBOARD,
-				RIDEV_DEVNOTIFY,
-				m_hWnd
-			}
-		);
-
-	for(size_t index = 0u;
-		index < mousesCount;
-		++index)
-		rIDs.emplace_back(
-			RAWINPUTDEVICE{
-				HID_USAGE_PAGE_GENERIC,
-				HID_USAGE_GENERIC_MOUSE,
-				RIDEV_DEVNOTIFY,
-				m_hWnd
-			}
-		);
-
-	std::vector<IGamepad*> pGamepadRefs = m_pInputManagerRef->GetGamepadRefs();
-
-	for (IGamepad* gamepad : pGamepadRefs) {
-		if(!gamepad->GetLeftThumbStickDeadZone())
-			gamepad->SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-
-		if(!gamepad->GetRightThumbStickDeadZone())
-			gamepad->SetRightThumbStickDeadZone(XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
-
-		if (!gamepad->GetTriggerThreshold())
-			gamepad->SetTriggerThreshold(XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-
-		rIDs.emplace_back(
-			RAWINPUTDEVICE{
-				HID_USAGE_PAGE_GENERIC,
-				HID_USAGE_GENERIC_GAMEPAD,
-				RIDEV_DEVNOTIFY,
-				m_hWnd
-			}
-		);
-	}
-
-	if (!RegisterRawInputDevices(
-		rIDs.data(), static_cast<UINT>(rIDs.size()), static_cast<UINT>(sizeof(RAWINPUTDEVICE))
-	))
-		throw WIN32_LAST_EXCEPT();
 }
 
 WinWindow::~WinWindow() noexcept {
@@ -200,8 +138,8 @@ LRESULT WinWindow::HandleMsg(
 	}
 	// Clear keystate when window loses focus to prevent input getting stuck
 	case WM_KILLFOCUS: {
-		if (m_pInputManagerRef)
-			m_pInputManagerRef->ClearInputStates();
+		if (m_pInputManager)
+			m_pInputManager->ClearInputStates();
 
 		break;
 	}
@@ -214,8 +152,8 @@ LRESULT WinWindow::HandleMsg(
 			m_width = static_cast<std::uint32_t>(clientRect.right - clientRect.left);
 			m_height = static_cast<std::uint32_t>(clientRect.bottom - clientRect.top);
 
-			if (m_pGraphicsEngineRef)
-				m_pGraphicsEngineRef->Resize(m_width, m_height);
+			if (m_pGraphicsEngine)
+				m_pGraphicsEngine->Resize(m_width, m_height);
 		}
 		else
 			m_isMinimized = true;
@@ -235,8 +173,8 @@ LRESULT WinWindow::HandleMsg(
 		break;
 	}
 	case WM_INPUT_DEVICE_CHANGE: {
-		if (wParam == GIDC_REMOVAL)
-			m_pInputManagerRef->DeviceDisconnected(
+		if (wParam == GIDC_REMOVAL && m_pInputManager)
+			m_pInputManager->DisconnectDevice(
 				static_cast<std::uint64_t>(lParam)
 			);
 
@@ -255,9 +193,10 @@ LRESULT WinWindow::HandleMsg(
 			break;
 #endif
 
-		m_pInputManagerRef->GetKeyboardByIndex()->OnChar(
-			static_cast<char>(wParam)
-		);
+		if (m_pInputManager)
+			m_pInputManager->GetKeyboardByIndex()->OnChar(
+				static_cast<char>(wParam)
+			);
 
 		break;
 	}
@@ -285,7 +224,7 @@ LRESULT WinWindow::HandleMsg(
 
 		auto& ri = reinterpret_cast<const RAWINPUT&>(*m_rawInputBuffer.data());
 		if (ri.header.dwType == RIM_TYPEMOUSE) {
-			IMouse* pMouseRef = m_pInputManagerRef->GetMouseByHandle(
+			IMouse* pMouseRef = m_pInputManager->GetMouseByHandle(
 				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
 			);
 
@@ -301,7 +240,7 @@ LRESULT WinWindow::HandleMsg(
 				pMouseRef->OnMouseMove(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
 		}
 		else if (ri.header.dwType == RIM_TYPEKEYBOARD) {
-			IKeyboard* pKeyboardRef = m_pInputManagerRef->GetKeyboardByHandle(
+			IKeyboard* pKeyboardRef = m_pInputManager->GetKeyboardByHandle(
 				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
 			);
 
@@ -320,47 +259,47 @@ LRESULT WinWindow::HandleMsg(
 				);
 		}
 		else if (ri.header.dwType == RIM_TYPEHID) {
-			GamepadData pGamepadRef = m_pInputManagerRef->GetGamepadByHandle(
+			auto [pGamepad, gamepadIndex] = m_pInputManager->GetGamepadByHandle(
 				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
 			);
 
 			XINPUT_STATE state;
 			ZeroMemory(&state, sizeof(XINPUT_STATE));
 
-			if (XInputGetState(static_cast<DWORD>(pGamepadRef.index), &state) == ERROR_SUCCESS) {
+			if (XInputGetState(static_cast<DWORD>(gamepadIndex), &state) == ERROR_SUCCESS) {
 				XINPUT_GAMEPAD xData = state.Gamepad;
 
-				pGamepadRef.pGamepad->SetRawButtonState(
+				pGamepad->SetRawButtonState(
 					ProcessGamepadRawButtons(
 						xData.wButtons
 					)
 				);
 
-				std::uint32_t leftStickDeadZone = pGamepadRef.pGamepad->
+				std::uint32_t leftStickDeadZone = pGamepad->
 					GetLeftThumbStickDeadZone();
 				if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
 					magnitude > leftStickDeadZone)
-					pGamepadRef.pGamepad->OnLeftThumbStickMove(
+					pGamepad->OnLeftThumbStickMove(
 						ProcessASMagnitude(
 							magnitude, xData.sThumbLX, xData.sThumbLY,
 							leftStickDeadZone
 						)
 					);
 
-				std::uint32_t rightStickDeadZone = pGamepadRef.pGamepad->
+				std::uint32_t rightStickDeadZone = pGamepad->
 					GetRightThumbStickDeadZone();
 				if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
 					magnitude > rightStickDeadZone)
-					pGamepadRef.pGamepad->OnRightThumbStickMove(
+					pGamepad->OnRightThumbStickMove(
 						ProcessASMagnitude(
 							magnitude, xData.sThumbRX, xData.sThumbRY,
 							rightStickDeadZone
 						)
 					);
 
-				std::uint32_t threshold = pGamepadRef.pGamepad->GetTriggerThreshold();
+				std::uint32_t threshold = pGamepad->GetTriggerThreshold();
 				if (xData.bLeftTrigger > threshold)
-					pGamepadRef.pGamepad->OnLeftTriggerMove(
+					pGamepad->OnLeftTriggerMove(
 						ProcessDeadZone(
 							static_cast<float>(xData.bLeftTrigger),
 							255u,
@@ -369,7 +308,7 @@ LRESULT WinWindow::HandleMsg(
 					);
 
 				if (xData.bRightTrigger > threshold)
-					pGamepadRef.pGamepad->OnRightTriggerMove(
+					pGamepad->OnRightTriggerMove(
 						ProcessDeadZone(
 							static_cast<float>(xData.bRightTrigger),
 							255u,
@@ -433,12 +372,12 @@ void WinWindow::ToggleFullScreenMode() {
 		);
 
 		// Needed for multi monitor setups
-		if (m_pGraphicsEngineRef) {
+		if (m_pGraphicsEngine) {
 			RECT renderingMonitorCoordinate = {};
 
 			std::uint64_t width = 0u;
 			std::uint64_t height = 0u;
-			m_pGraphicsEngineRef->GetMonitorCoordinates(
+			m_pGraphicsEngine->GetMonitorCoordinates(
 				width, height
 			);
 
@@ -565,9 +504,75 @@ bool WinWindow::IsMinimized() const noexcept {
 	return m_isMinimized;
 }
 
-void WinWindow::SetGraphicsEngineRef(GraphicsEngine* gfxEngine) noexcept {
-	m_pGraphicsEngineRef = gfxEngine;
+void WinWindow::SetRenderer(std::shared_ptr<GraphicsEngine> renderer) noexcept {
+	m_pGraphicsEngine = std::move(renderer);
 }
+
+void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
+	m_pInputManager = std::move(ioMan);
+
+	std::vector<RAWINPUTDEVICE> rIDs;
+	size_t keyboardsCount = m_pInputManager->GetKeyboardsCount();
+	size_t mousesCount = m_pInputManager->GetMousesCount();
+	size_t gamepadsCount = m_pInputManager->GetGamepadsCount();
+
+	if (gamepadsCount >= 5u)
+		WIN32_GENERIC_THROW(
+			"Maximum supported XBox gamepads are four."
+		);
+
+	for (size_t index = 0u;
+		index < keyboardsCount;
+		++index)
+		rIDs.emplace_back(
+			RAWINPUTDEVICE{
+				HID_USAGE_PAGE_GENERIC,
+				HID_USAGE_GENERIC_KEYBOARD,
+				RIDEV_DEVNOTIFY,
+				m_hWnd
+			}
+		);
+
+	for(size_t index = 0u;
+		index < mousesCount;
+		++index)
+		rIDs.emplace_back(
+			RAWINPUTDEVICE{
+				HID_USAGE_PAGE_GENERIC,
+				HID_USAGE_GENERIC_MOUSE,
+				RIDEV_DEVNOTIFY,
+				m_hWnd
+			}
+		);
+
+	std::vector<IGamepad*> pGamepadRefs = m_pInputManager->GetGamepadRefs();
+
+	for (IGamepad* gamepad : pGamepadRefs) {
+		if(!gamepad->GetLeftThumbStickDeadZone())
+			gamepad->SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+
+		if(!gamepad->GetRightThumbStickDeadZone())
+			gamepad->SetRightThumbStickDeadZone(XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+
+		if (!gamepad->GetTriggerThreshold())
+			gamepad->SetTriggerThreshold(XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+
+		rIDs.emplace_back(
+			RAWINPUTDEVICE{
+				HID_USAGE_PAGE_GENERIC,
+				HID_USAGE_GENERIC_GAMEPAD,
+				RIDEV_DEVNOTIFY,
+				m_hWnd
+			}
+		);
+	}
+
+	if (!RegisterRawInputDevices(
+		rIDs.data(), static_cast<UINT>(rIDs.size()), static_cast<UINT>(sizeof(RAWINPUTDEVICE))
+	))
+		throw WIN32_LAST_EXCEPT();
+}
+
 
 float WinWindow::GetAspectRatio() const noexcept {
 	return static_cast<float>(m_width) / m_height;

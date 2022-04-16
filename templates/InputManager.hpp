@@ -1,5 +1,5 @@
-#ifndef __INPUT_MANAGER_HPP__
-#define __INPUT_MANAGER_HPP__
+#ifndef INPUT_MANAGER_HPP_
+#define INPUT_MANAGER_HPP_
 #include <IKeyboard.hpp>
 #include <IMouse.hpp>
 #include <IGamepad.hpp>
@@ -12,10 +12,7 @@ enum class DeviceType {
 	DeviceTypeCount
 };
 
-struct GamepadData {
-	IGamepad* pGamepad = nullptr;
-	size_t index = 0u;
-};
+using GamepadData = std::pair<IGamepad*, size_t>;
 
 class InputManager {
 public:
@@ -24,7 +21,7 @@ public:
 	virtual void AddDeviceSupport(
 		DeviceType device, size_t count = 1u
 	) noexcept = 0;
-	virtual void DeviceDisconnected(
+	virtual void DisconnectDevice(
 		std::uint64_t handle
 	) noexcept = 0;
 

@@ -1,5 +1,5 @@
-#ifndef __WIN_WINDOW_HPP__
-#define __WIN_WINDOW_HPP__
+#ifndef WIN_WINDOW_HPP_
+#define WIN_WINDOW_HPP_
 #include <CleanWin.hpp>
 #include <Window.hpp>
 #include <vector>
@@ -27,8 +27,8 @@ private:
 	};
 
 public:
-	WinWindow(std::uint32_t width, std::uint32_t height, InputManager* ioMan, const char* name);
-	~WinWindow() noexcept;
+	WinWindow(std::uint32_t width, std::uint32_t height, const char* name);
+	~WinWindow() noexcept override;
 
 	WinWindow(const WinWindow&) = delete;
 	WinWindow& operator=(const WinWindow&) = delete;
@@ -44,8 +44,10 @@ public:
 	[[nodiscard]]
 	void* GetModuleInstance() const noexcept override;
 
+	void SetInputManager(std::shared_ptr<InputManager> ioMan) override;
+
 	void SetTitle(const std::string& title) override;
-	void SetGraphicsEngineRef(GraphicsEngine* gfxEngine) noexcept override;
+	void SetRenderer(std::shared_ptr<GraphicsEngine> renderer) noexcept override;
 
 	void SetWindowIcon(const std::string& iconPath) override;
 	void EnableCursor() noexcept override;
@@ -75,8 +77,8 @@ private:
 	) const noexcept;
 
 private:
-	InputManager* m_pInputManagerRef;
-	GraphicsEngine* m_pGraphicsEngineRef;
+	std::shared_ptr<InputManager> m_pInputManager;
+	std::shared_ptr<GraphicsEngine> m_pGraphicsEngine;
 
 private:
 	std::uint32_t m_width;

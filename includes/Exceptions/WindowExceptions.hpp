@@ -1,5 +1,5 @@
-#ifndef __WINDOW_EXCEPTION_HPP__
-#define __WINDOW_EXCEPTION_HPP__
+#ifndef WINDOW_EXCEPTION_HPP_
+#define WINDOW_EXCEPTION_HPP_
 #include <Win32BaseException.hpp>
 
 class WindowException : public Win32BaseException {

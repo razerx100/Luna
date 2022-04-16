@@ -1,5 +1,5 @@
-#ifndef __WINDOW_THROW_MACROS_HPP__
-#define __WINDOW_THROW_MACROS_HPP__
+#ifndef WINDOW_THROW_MACROS_HPP_
+#define WINDOW_THROW_MACROS_HPP_
 
 #include <WindowExceptions.hpp>
 

@@ -1,5 +1,5 @@
-#ifndef __LUNA_INSTANCE_HPP__
-#define __LUNA_INSTANCE_HPP__
+#ifndef LUNA_INSTANCE_HPP_
+#define LUNA_INSTANCE_HPP_
 #include <Window.hpp>
 
 #ifdef BUILD_LUNA
@@ -10,6 +10,6 @@
 
 [[nodiscard]]
 LUNA_DLL Window* __cdecl CreateLunaInstance(
-	std::uint32_t width, std::uint32_t height, class InputManager* ioMan, const char* name
+	std::uint32_t width, std::uint32_t height, const char* name
 );
 #endif

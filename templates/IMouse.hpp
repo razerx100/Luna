@@ -1,5 +1,5 @@
-#ifndef __IMOUSE_HPP__
-#define __IMOUSE_HPP__
+#ifndef I_MOUSE_HPP_
+#define I_MOUSE_HPP_
 #include <utility>
 
 typedef std::pair<std::int64_t, std::int64_t> PosDelta;

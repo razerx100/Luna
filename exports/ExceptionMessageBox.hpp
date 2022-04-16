@@ -1,5 +1,5 @@
-#ifndef __EXCEPTION_MESSAGE_BOX_HPP__
-#define __EXCEPTION_MESSAGE_BOX_HPP__
+#ifndef EXCEPTION_MESSAGE_BOX_HPP_
+#define EXCEPTION_MESSAGE_BOX_HPP_
 
 #ifdef BUILD_LUNA
 #define LUNA_DLL __declspec(dllexport)

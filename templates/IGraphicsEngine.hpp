@@ -1,5 +1,5 @@
-#ifndef __I_GRAPHICS_ENGINE_HPP__
-#define __I_GRAPHICS_ENGINE_HPP__
+#ifndef I_GRAPHICS_ENGINE_HPP_
+#define I_GRAPHICS_ENGINE_HPP_
 #include <cstdint>
 
 class GraphicsEngine {

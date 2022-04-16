@@ -1,6 +1,5 @@
-#ifndef __IKEYBOARD_HPP__
-#define __IKEYBOARD_HPP__
-#include <cstdint>
+#ifndef I_KEYBOARD_HPP_
+#define I_KEYBOARD_HPP_
 #include <optional>
 
 enum class SKeyCodes {
