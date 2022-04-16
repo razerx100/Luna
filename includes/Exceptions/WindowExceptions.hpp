@@ -6,7 +6,9 @@ class WindowException : public Win32BaseException {
 public:
 	WindowException(int line, const char* file, long hr) noexcept;
 
+	[[nodiscard]]
 	const char* what() const noexcept override;
+	[[nodiscard]]
 	const char* GetType() const noexcept override;
 	void GenerateWhatBuffer() noexcept override;
 };
@@ -14,6 +16,8 @@ public:
 class NoGfxException : public Exception {
 public:
 	using Exception::Exception;
+
+	[[nodiscard]]
 	const char* GetType() const noexcept override;
 };
 

@@ -4,7 +4,7 @@
 #include <Window.hpp>
 #include <vector>
 #include <InputManager.hpp>
-#include <IGraphicsEngine.hpp>
+#include <Renderer.hpp>
 
 class WinWindow : public Window {
 private:
@@ -19,6 +19,8 @@ private:
 
 		const char* GetName() noexcept;
 		void Register() noexcept;
+
+		[[nodiscard]]
 		HINSTANCE GetHInstance() const noexcept;
 
 	private:
@@ -47,7 +49,7 @@ public:
 	void SetInputManager(std::shared_ptr<InputManager> ioMan) override;
 
 	void SetTitle(const std::string& title) override;
-	void SetRenderer(std::shared_ptr<GraphicsEngine> renderer) noexcept override;
+	void SetRenderer(std::shared_ptr<Renderer> renderer) noexcept override;
 
 	void SetWindowIcon(const std::string& iconPath) override;
 	void EnableCursor() noexcept override;
@@ -68,17 +70,20 @@ private:
 	void ShowCursor() noexcept;
 	HICON LoadIconFromPath(const char* iconPath);
 
+	[[nodiscard]]
 	float GetMagnitude(std::int16_t x, std::int16_t y) const noexcept;
+	[[nodiscard]]
 	float ProcessDeadZone(
 		float magnitude, std::uint32_t maxValue, std::uint32_t deadZone
 	) const noexcept;
+	[[nodiscard]]
 	ASData ProcessASMagnitude(
 		float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
 	) const noexcept;
 
 private:
 	std::shared_ptr<InputManager> m_pInputManager;
-	std::shared_ptr<GraphicsEngine> m_pGraphicsEngine;
+	std::shared_ptr<Renderer> m_pGraphicsEngine;
 
 private:
 	std::uint32_t m_width;

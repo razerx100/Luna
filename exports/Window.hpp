@@ -10,7 +10,7 @@ public:
 
 	virtual void SetInputManager(std::shared_ptr<class InputManager> ioMan) = 0;
 	virtual void SetTitle(const std::string& title) = 0;
-	virtual void SetRenderer(std::shared_ptr<class GraphicsEngine> renderer) noexcept = 0;
+	virtual void SetRenderer(std::shared_ptr<class Renderer> renderer) noexcept = 0;
 
 	[[nodiscard]]
 	virtual std::optional<int> Update() = 0;

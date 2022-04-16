@@ -1,7 +1,6 @@
 #include <WinWindow.hpp>
 #include <WindowThrowMacros.hpp>
 #include <filesystem>
-#include <IGraphicsEngine.hpp>
 #include <hidusage.h>
 #include <Xinput.h>
 
@@ -504,7 +503,7 @@ bool WinWindow::IsMinimized() const noexcept {
 	return m_isMinimized;
 }
 
-void WinWindow::SetRenderer(std::shared_ptr<GraphicsEngine> renderer) noexcept {
+void WinWindow::SetRenderer(std::shared_ptr<Renderer> renderer) noexcept {
 	m_pGraphicsEngine = std::move(renderer);
 }
 
