@@ -6,7 +6,7 @@
 #include <InputManager.hpp>
 #include <Renderer.hpp>
 
-class WinWindow : public Window {
+class WinWindow final : public Window {
 private:
 
 	class WindowClass {
