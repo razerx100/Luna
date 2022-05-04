@@ -151,8 +151,8 @@ LRESULT WinWindow::HandleMsg(
 			m_width = static_cast<std::uint32_t>(clientRect.right - clientRect.left);
 			m_height = static_cast<std::uint32_t>(clientRect.bottom - clientRect.top);
 
-			if (m_pGraphicsEngine)
-				m_pGraphicsEngine->Resize(m_width, m_height);
+			if (m_pRenderer)
+				m_pRenderer->Resize(m_width, m_height);
 		}
 		else
 			m_isMinimized = true;
@@ -371,14 +371,10 @@ void WinWindow::ToggleFullScreenMode() {
 		);
 
 		// Needed for multi monitor setups
-		if (m_pGraphicsEngine) {
+		if (m_pRenderer) {
 			RECT renderingMonitorCoordinate = {};
 
-			std::uint64_t width = 0u;
-			std::uint64_t height = 0u;
-			m_pGraphicsEngine->GetMonitorCoordinates(
-				width, height
-			);
+			auto [width, height] = m_pRenderer->GetDisplayCoordinates();
 
 			renderingMonitorCoordinate.right = static_cast<LONG>(width);
 			renderingMonitorCoordinate.bottom = static_cast<LONG>(height);
@@ -504,7 +500,7 @@ bool WinWindow::IsMinimized() const noexcept {
 }
 
 void WinWindow::SetRenderer(std::shared_ptr<Renderer> renderer) noexcept {
-	m_pGraphicsEngine = std::move(renderer);
+	m_pRenderer = std::move(renderer);
 }
 
 void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {

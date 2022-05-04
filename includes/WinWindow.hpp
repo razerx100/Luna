@@ -83,7 +83,7 @@ private:
 
 private:
 	std::shared_ptr<InputManager> m_pInputManager;
-	std::shared_ptr<Renderer> m_pGraphicsEngine;
+	std::shared_ptr<Renderer> m_pRenderer;
 
 private:
 	std::uint32_t m_width;

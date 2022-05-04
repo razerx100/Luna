@@ -18,14 +18,14 @@ else()
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
 endif()
 
+file(GLOB_RECURSE SRC src/*.cpp includes/*.hpp exports/*.hpp templates/*.hpp)
+
 if(IMGUIFLAG STREQUAL "ENABLE")
-    file(GLOB_RECURSE SRC src/*.cpp includes/*.hpp exports/*.hpp templates/*.hpp ImGui/*.cpp ImGui/*.h)
-else()
-    file(GLOB_RECURSE SRC src/*.cpp includes/*.hpp exports/*.hpp templates/*.hpp)
+    file(GLOB_RECURSE IMGUI ImGui/*.cpp ImGui/*.h)
 endif()
 
 add_library(${PROJECT_NAME} SHARED
-    ${SRC}
+    ${SRC} ${IMGUI}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE includes/ exports/ includes/Exceptions/ templates/)
