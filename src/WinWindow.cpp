@@ -2,6 +2,7 @@
 #include <WindowThrowMacros.hpp>
 #include <filesystem>
 #include <hidusage.h>
+#include <XBoxController.hpp>
 #include <Xinput.h>
 
 #ifdef _IMGUI
@@ -177,14 +178,7 @@ LRESULT WinWindow::HandleMsg(
 		if (wParam == GIDC_REMOVAL && m_pInputManager) {
 			m_pInputManager->DisconnectDevice(static_cast<std::uint64_t>(lParam));
 
-			XINPUT_STATE state = {};
-			ZeroMemory(&state, sizeof(XINPUT_STATE));
-
-			auto gamepadCount = static_cast<DWORD>(m_pInputManager->GetGamepadCount());
-
-			for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex)
-				if (XInputGetState(gamepadIndex, &state) == ERROR_DEVICE_NOT_CONNECTED)
-					m_pInputManager->DisconnectGamepadByIndex(gamepadIndex);
+			DisconnectXBoxController(m_pInputManager.get());
 		}
 
 		break;
@@ -414,35 +408,6 @@ void WinWindow::SetWindowIcon(const std::string& iconPath) {
 	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 }
 
-float WinWindow::GetMagnitude(std::int16_t x, std::int16_t y) const noexcept {
-	return std::sqrtf(
-		static_cast<float>(std::pow(x, 2) +
-		std::pow(y, 2))
-	);
-}
-
-float WinWindow::ProcessDeadZone(
-	float magnitude, std::uint32_t maxValue, std::uint32_t deadZone
-) const noexcept {
-	magnitude = std::min(magnitude, static_cast<float>(maxValue));
-	magnitude -= deadZone;
-
-	return magnitude / (maxValue - deadZone);
-}
-
-ThumbStickData WinWindow::ProcessThumbStickData(
-	float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
-) const noexcept {
-	ThumbStickData data = {};
-
-	data.xDirection = x / magnitude;
-	data.yDirection = y / magnitude;
-
-	data.magnitude = ProcessDeadZone(magnitude, 32767u, deadZone);
-
-	return data;
-}
-
 bool WinWindow::IsMinimized() const noexcept {
 	return m_isMinimized;
 }
@@ -518,59 +483,5 @@ float WinWindow::GetAspectRatio() const noexcept {
 }
 
 void WinWindow::UpdateIndependentInputs() const noexcept {
-	XINPUT_STATE state = {};
-	ZeroMemory(&state, sizeof(XINPUT_STATE));
-
-	auto gamepadCount = static_cast<DWORD>(m_pInputManager->GetGamepadCount());
-
-	for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex) {
-		if (XInputGetState(gamepadIndex, &state) == ERROR_SUCCESS) {
-			IGamepad* pGamepad = m_pInputManager->GetGamepadByIndex(gamepadIndex);
-
-			const XINPUT_GAMEPAD& xData = state.Gamepad;
-
-			pGamepad->SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
-
-			std::uint32_t leftStickDeadZone =
-				pGamepad->GetLeftThumbStickDeadZone();
-			if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
-				magnitude > leftStickDeadZone)
-				pGamepad->OnLeftThumbStickMove(
-					ProcessThumbStickData(
-						magnitude, xData.sThumbLX, xData.sThumbLY,
-						leftStickDeadZone
-					)
-				);
-
-			std::uint32_t rightStickDeadZone =
-				pGamepad->GetRightThumbStickDeadZone();
-			if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
-				magnitude > rightStickDeadZone)
-				pGamepad->OnRightThumbStickMove(
-					ProcessThumbStickData(
-						magnitude, xData.sThumbRX, xData.sThumbRY,
-						rightStickDeadZone
-					)
-				);
-
-			std::uint32_t threshold = pGamepad->GetTriggerThreshold();
-			if (xData.bLeftTrigger > threshold)
-				pGamepad->OnLeftTriggerMove(
-					ProcessDeadZone(
-						static_cast<float>(xData.bLeftTrigger),
-						255u,
-						threshold
-					)
-				);
-
-			if (xData.bRightTrigger > threshold)
-				pGamepad->OnRightTriggerMove(
-					ProcessDeadZone(
-						static_cast<float>(xData.bRightTrigger),
-						255u,
-						threshold
-					)
-				);
-		}
-	}
+	CheckXBoxControllerStates(m_pInputManager.get());
 }

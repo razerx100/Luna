@@ -71,17 +71,6 @@ private:
 	void ShowCursor() noexcept;
 	HICON LoadIconFromPath(const char* iconPath);
 
-	[[nodiscard]]
-	float GetMagnitude(std::int16_t x, std::int16_t y) const noexcept;
-	[[nodiscard]]
-	float ProcessDeadZone(
-		float magnitude, std::uint32_t maxValue, std::uint32_t deadZone
-	) const noexcept;
-	[[nodiscard]]
-	ThumbStickData ProcessThumbStickData(
-		float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
-	) const noexcept;
-
 private:
 	std::shared_ptr<InputManager> m_pInputManager;
 	std::shared_ptr<Renderer> m_pRenderer;
@@ -105,6 +94,5 @@ SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept;
 std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
 	std::uint16_t newState
 ) noexcept;
-std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept;
 
 #endif
