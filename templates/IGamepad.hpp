@@ -1,6 +1,7 @@
 #ifndef I_GAMEPAD_HPP_
 #define I_GAMEPAD_HPP_
 #include <cstdint>
+#include <optional>
 
 enum class XBoxButton {
 	UP,
@@ -20,7 +21,7 @@ enum class XBoxButton {
 	Invalid
 };
 
-struct ASData {
+struct ThumbStickData {
 	float magnitude;
 	float xDirection;
 	float yDirection;
@@ -31,10 +32,6 @@ public:
 	class Event {
 	public:
 		enum class Type {
-			LeftThumbStick,
-			RightThumbStick,
-			LeftTrigger,
-			RightTrigger,
 			Press,
 			Release,
 			Invalid
@@ -43,28 +40,15 @@ public:
 	private:
 		Type m_type;
 		XBoxButton m_button;
-		ASData m_data;
 
 	public:
 		Event() noexcept
 			: m_type(Type::Invalid),
-			m_button(XBoxButton::Invalid),
-			m_data{} {}
-
-		Event(Type type, float magnitude) noexcept
-			: m_type(type),
-			m_button(XBoxButton::Invalid),
-			m_data{magnitude, 0.0f, 0.0f} {}
-
-		Event(Type type, ASData data) noexcept
-			: m_type(type),
-			m_button(XBoxButton::Invalid),
-			m_data(data) {}
+			m_button(XBoxButton::Invalid) {}
 
 		Event(Type type, XBoxButton button) noexcept
 			: m_type(type),
-			m_button(button),
-			m_data{} {}
+			m_button(button) {}
 
 		[[nodiscard]]
 		bool IsValid() const noexcept {
@@ -77,16 +61,6 @@ public:
 		}
 
 		[[nodiscard]]
-		ASData GetASData() const noexcept {
-			return m_data;
-		}
-
-		[[nodiscard]]
-		float GetMagnitude() const noexcept {
-			return m_data.magnitude;
-		}
-
-		[[nodiscard]]
 		XBoxButton GetButton() const noexcept {
 			return m_button;
 		}
@@ -96,17 +70,27 @@ public:
 	virtual ~IGamepad() = default;
 
 	virtual void ClearState() noexcept = 0;
+	virtual void ClearBuffers() noexcept = 0;
+	virtual void Flush() noexcept = 0;
 
 	[[nodiscard]]
-	virtual Event Read() noexcept = 0;
+	virtual std::optional<Event> ReadEvent() noexcept = 0;
+	[[nodiscard]]
+	virtual std::optional<float> ReadLeftTriggerData() noexcept = 0;
+	[[nodiscard]]
+	virtual std::optional<float> ReadRightTriggerData() noexcept = 0;
+	[[nodiscard]]
+	virtual std::optional<ThumbStickData> ReadLeftThumbStickData() noexcept = 0;
+	[[nodiscard]]
+	virtual std::optional<ThumbStickData> ReadRightThumbStickData() noexcept = 0;
 
 	[[nodiscard]]
 	virtual bool IsButtonPressed(XBoxButton button) const noexcept = 0;
 	[[nodiscard]]
 	virtual bool AreButtonsPressed(size_t count, ...) const noexcept = 0;
 
-	virtual void OnLeftThumbStickMove(ASData data) noexcept = 0;
-	virtual void OnRightThumbStickMove(ASData data) noexcept = 0;
+	virtual void OnLeftThumbStickMove(ThumbStickData data) noexcept = 0;
+	virtual void OnRightThumbStickMove(ThumbStickData data) noexcept = 0;
 	virtual void OnLeftTriggerMove(float data) noexcept = 0;
 	virtual void OnRightTriggerMove(float data) noexcept = 0;
 

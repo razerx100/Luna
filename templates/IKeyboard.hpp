@@ -98,7 +98,7 @@ public:
 	[[nodiscard]]
 	virtual bool AreKeysPressed(size_t count, ...) const noexcept = 0;
 	[[nodiscard]]
-	virtual Event ReadKey() noexcept = 0;
+	virtual std::optional<Event> ReadKey() noexcept = 0;
 
 	virtual void FlushKey() noexcept = 0;
 

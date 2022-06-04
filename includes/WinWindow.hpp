@@ -77,7 +77,7 @@ private:
 		float magnitude, std::uint32_t maxValue, std::uint32_t deadZone
 	) const noexcept;
 	[[nodiscard]]
-	ASData ProcessASMagnitude(
+	ThumbStickData ProcessThumbStickData(
 		float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
 	) const noexcept;
 

@@ -9,21 +9,15 @@ enum class DeviceType {
 	Keyboard,
 	Mouse,
 	Gamepad,
-	DeviceTypeCount
+	Invalid
 };
-
-using GamepadData = std::pair<IGamepad*, size_t>;
 
 class InputManager {
 public:
 	virtual ~InputManager() = default;
 
-	virtual void AddDeviceSupport(
-		DeviceType device, size_t count = 1u
-	) noexcept = 0;
-	virtual void DisconnectDevice(
-		std::uint64_t handle
-	) noexcept = 0;
+	virtual void AddDeviceSupport(DeviceType device, size_t count = 1u) noexcept = 0;
+	virtual void DisconnectDevice(std::uint64_t handle) noexcept = 0;
 
 	[[nodiscard]]
 	virtual std::vector<IKeyboard*> GetKeyboardRefs() const noexcept = 0;
@@ -33,24 +27,32 @@ public:
 	virtual std::vector<IGamepad*> GetGamepadRefs() const noexcept = 0;
 
 	[[nodiscard]]
-	virtual size_t GetKeyboardsCount() const noexcept = 0;
+	virtual size_t GetKeyboardCount() const noexcept = 0;
 	[[nodiscard]]
-	virtual size_t GetMousesCount() const noexcept = 0;
+	virtual size_t GetMouseCount() const noexcept = 0;
 	[[nodiscard]]
-	virtual size_t GetGamepadsCount() const noexcept = 0;
+	virtual size_t GetGamepadCount() const noexcept = 0;
 
 	[[nodiscard]]
-	virtual	IKeyboard* GetKeyboardByIndex(size_t index = 0u) const noexcept = 0;
+	virtual	IKeyboard* GetKeyboard() const noexcept = 0;
 	[[nodiscard]]
-	virtual	IMouse* GetMouseByIndex(size_t index = 0u) const noexcept = 0;
+	virtual	IMouse* GetMouse() const noexcept = 0;
 	[[nodiscard]]
-	virtual	IGamepad* GetGamepadByIndex(size_t index = 0u) const noexcept = 0;
+	virtual	IGamepad* GetGamepad() const noexcept = 0;
+
+	[[nodiscard]]
+	virtual	IKeyboard* GetKeyboardByIndex(size_t index) const noexcept = 0;
+	[[nodiscard]]
+	virtual	IMouse* GetMouseByIndex(size_t index) const noexcept = 0;
+	[[nodiscard]]
+	virtual	IGamepad* GetGamepadByIndex(size_t index) const noexcept = 0;
+
 	[[nodiscard]]
 	virtual	IKeyboard* GetKeyboardByHandle(std::uint64_t handle) noexcept = 0;
 	[[nodiscard]]
 	virtual	IMouse* GetMouseByHandle(std::uint64_t handle) noexcept = 0;
-	[[nodiscard]]
-	virtual	GamepadData GetGamepadByHandle(std::uint64_t handle) noexcept = 0;
+
+	virtual void DisconnectGamepadByIndex(size_t index) noexcept = 0;
 
 	virtual void ClearInputStates() noexcept = 0;
 };

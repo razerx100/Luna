@@ -87,9 +87,11 @@ std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
 std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept {
 	std::uint16_t map = 0u;
 
+	// 1 to 100
 	for (size_t index = 0; index < 12u; ++index)
 		map |= static_cast<bool>(state & (1u << index)) << index;
 
+	// 1000 to 8000
 	for (size_t index = 12, index1 = 10; index < 16u; ++index, ++index1)
 		map |= static_cast<bool>(state & (1u << index)) << index1;
 

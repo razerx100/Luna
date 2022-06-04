@@ -48,13 +48,15 @@ HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
 // Window
 WinWindow::WinWindow(
 	std::uint32_t width, std::uint32_t height, const char* name
-) : m_width(width), m_height(height), m_fullScreenMode(false),
+) : m_width(width), m_height(height), m_hWnd(nullptr),
+	m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
+	m_windowRect{},
 	m_cursorEnabled(true), m_isMinimized(false) {
 
 	m_windowClass.Register();
 
-	RECT wr;
+	RECT wr = {};
 	wr.left = 0;
 	wr.right = static_cast<LONG>(width);
 	wr.top = 0;
@@ -172,10 +174,18 @@ LRESULT WinWindow::HandleMsg(
 		break;
 	}
 	case WM_INPUT_DEVICE_CHANGE: {
-		if (wParam == GIDC_REMOVAL && m_pInputManager)
-			m_pInputManager->DisconnectDevice(
-				static_cast<std::uint64_t>(lParam)
-			);
+		if (wParam == GIDC_REMOVAL && m_pInputManager) {
+			m_pInputManager->DisconnectDevice(static_cast<std::uint64_t>(lParam));
+
+			XINPUT_STATE state = {};
+			ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+			auto gamepadCount = static_cast<DWORD>(m_pInputManager->GetGamepadCount());
+
+			for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex)
+				if (XInputGetState(gamepadIndex, &state) == ERROR_DEVICE_NOT_CONNECTED)
+					m_pInputManager->DisconnectGamepadByIndex(gamepadIndex);
+		}
 
 		break;
 	}
@@ -193,9 +203,7 @@ LRESULT WinWindow::HandleMsg(
 #endif
 
 		if (m_pInputManager)
-			m_pInputManager->GetKeyboardByIndex()->OnChar(
-				static_cast<char>(wParam)
-			);
+			m_pInputManager->GetKeyboard()->OnChar(static_cast<char>(wParam));
 
 		break;
 	}
@@ -216,104 +224,103 @@ LRESULT WinWindow::HandleMsg(
 		// Get raw data by passing buffer
 		if (GetRawInputData(
 			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
-			m_rawInputBuffer.data(), &size,
+			std::data(m_rawInputBuffer), &size,
 			static_cast<UINT>(sizeof(RAWINPUTHEADER))
 		) != size)
 			break;
 
-		auto& ri = reinterpret_cast<const RAWINPUT&>(*m_rawInputBuffer.data());
-		if (ri.header.dwType == RIM_TYPEMOUSE) {
+		auto rawInput = reinterpret_cast<const RAWINPUT*>(std::data(m_rawInputBuffer));
+		const RAWINPUTHEADER& rawHeader = rawInput->header;
+
+		if (rawHeader.dwType == RIM_TYPEMOUSE) {
 			IMouse* pMouseRef = m_pInputManager->GetMouseByHandle(
-				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
+				reinterpret_cast<std::uint64_t>(rawHeader.hDevice)
 			);
 
-			if (ri.data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
-				pMouseRef->OnWheelDelta(static_cast<short>(ri.data.mouse.usButtonData));
-			else if (ri.data.mouse.usButtonFlags) {
-				auto processedData = ProcessMouseRawButtons(ri.data.mouse.usButtonFlags);
-				pMouseRef->SetPressState(processedData.first);
-				pMouseRef->SetReleaseState(processedData.second);
+			const RAWMOUSE& rawMouse = rawInput->data.mouse;
+
+			if (rawMouse.usButtonFlags & RI_MOUSE_WHEEL)
+				pMouseRef->OnWheelDelta(static_cast<short>(rawMouse.usButtonData));
+			else if (rawMouse.usButtonFlags) {
+				auto [pressedButtons, releasedButtons] =
+					ProcessMouseRawButtons(rawMouse.usButtonFlags);
+				pMouseRef->SetPressState(pressedButtons);
+				pMouseRef->SetReleaseState(releasedButtons);
 			}
 
-			if (ri.data.mouse.lLastX != 0 || ri.data.mouse.lLastY != 0)
-				pMouseRef->OnMouseMove(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
+			if (rawMouse.lLastX != 0 || rawMouse.lLastY != 0)
+				pMouseRef->OnMouseMove(rawMouse.lLastX, rawMouse.lLastY);
 		}
-		else if (ri.header.dwType == RIM_TYPEKEYBOARD) {
+		else if (rawHeader.dwType == RIM_TYPEKEYBOARD) {
 			IKeyboard* pKeyboardRef = m_pInputManager->GetKeyboardByHandle(
-				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
+				reinterpret_cast<std::uint64_t>(rawHeader.hDevice)
 			);
 
-			std::uint32_t legacyMessage = ri.data.keyboard.Message;
+			const RAWKEYBOARD& rawKeyboard = rawInput->data.keyboard;
+
+			std::uint32_t legacyMessage = rawKeyboard.Message;
 			if (legacyMessage == WM_KEYDOWN || legacyMessage == WM_SYSKEYDOWN)
-				pKeyboardRef->OnKeyPressed(
-					GetSKeyCodes(
-						ri.data.keyboard.VKey
-					)
-				);
+				pKeyboardRef->OnKeyPressed(GetSKeyCodes(rawKeyboard.VKey));
 			else if (legacyMessage == WM_KEYUP || legacyMessage == WM_SYSKEYUP)
-				pKeyboardRef->OnKeyReleased(
-					GetSKeyCodes(
-						ri.data.keyboard.VKey
-					)
-				);
+				pKeyboardRef->OnKeyReleased(GetSKeyCodes(rawKeyboard.VKey));
 		}
-		else if (ri.header.dwType == RIM_TYPEHID) {
-			auto [pGamepad, gamepadIndex] = m_pInputManager->GetGamepadByHandle(
-				reinterpret_cast<std::uint64_t>(ri.header.hDevice)
-			);
-
-			XINPUT_STATE state;
+		else if (rawHeader.dwType == RIM_TYPEHID) {
+			XINPUT_STATE state = {};
 			ZeroMemory(&state, sizeof(XINPUT_STATE));
 
-			if (XInputGetState(static_cast<DWORD>(gamepadIndex), &state) == ERROR_SUCCESS) {
-				XINPUT_GAMEPAD xData = state.Gamepad;
+			auto gamepadCount = static_cast<DWORD>(m_pInputManager->GetGamepadCount());
 
-				pGamepad->SetRawButtonState(
-					ProcessGamepadRawButtons(
-						xData.wButtons
-					)
-				);
+			for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex) {
+				if (XInputGetState(gamepadIndex, &state) == ERROR_SUCCESS) {
+					IGamepad* pGamepad = m_pInputManager->GetGamepadByIndex(gamepadIndex);
 
-				std::uint32_t leftStickDeadZone = pGamepad->
-					GetLeftThumbStickDeadZone();
-				if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
-					magnitude > leftStickDeadZone)
-					pGamepad->OnLeftThumbStickMove(
-						ProcessASMagnitude(
-							magnitude, xData.sThumbLX, xData.sThumbLY,
-							leftStickDeadZone
-						)
-					);
+					const XINPUT_GAMEPAD& xData = state.Gamepad;
 
-				std::uint32_t rightStickDeadZone = pGamepad->
-					GetRightThumbStickDeadZone();
-				if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
-					magnitude > rightStickDeadZone)
-					pGamepad->OnRightThumbStickMove(
-						ProcessASMagnitude(
-							magnitude, xData.sThumbRX, xData.sThumbRY,
-							rightStickDeadZone
-						)
-					);
+					pGamepad->SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
 
-				std::uint32_t threshold = pGamepad->GetTriggerThreshold();
-				if (xData.bLeftTrigger > threshold)
-					pGamepad->OnLeftTriggerMove(
-						ProcessDeadZone(
-							static_cast<float>(xData.bLeftTrigger),
-							255u,
-							threshold
-						)
-					);
+					std::uint32_t leftStickDeadZone =
+						pGamepad->GetLeftThumbStickDeadZone();
+					if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
+						magnitude > leftStickDeadZone)
+						pGamepad->OnLeftThumbStickMove(
+							ProcessThumbStickData(
+								magnitude, xData.sThumbLX, xData.sThumbLY,
+								leftStickDeadZone
+							)
+						);
 
-				if (xData.bRightTrigger > threshold)
-					pGamepad->OnRightTriggerMove(
-						ProcessDeadZone(
-							static_cast<float>(xData.bRightTrigger),
-							255u,
-							threshold
-						)
-					);
+					std::uint32_t rightStickDeadZone =
+						pGamepad->GetRightThumbStickDeadZone();
+					if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
+						magnitude > rightStickDeadZone)
+						pGamepad->OnRightThumbStickMove(
+							ProcessThumbStickData(
+								magnitude, xData.sThumbRX, xData.sThumbRY,
+								rightStickDeadZone
+							)
+						);
+
+					std::uint32_t threshold = pGamepad->GetTriggerThreshold();
+					if (xData.bLeftTrigger > threshold)
+						pGamepad->OnLeftTriggerMove(
+							ProcessDeadZone(
+								static_cast<float>(xData.bLeftTrigger),
+								255u,
+								threshold
+							)
+						);
+
+					if (xData.bRightTrigger > threshold)
+						pGamepad->OnRightTriggerMove(
+							ProcessDeadZone(
+								static_cast<float>(xData.bRightTrigger),
+								255u,
+								threshold
+							)
+						);
+				}
+				else
+					break;
 			}
 		}
 
@@ -482,10 +489,10 @@ float WinWindow::ProcessDeadZone(
 	return magnitude / (maxValue - deadZone);
 }
 
-ASData WinWindow::ProcessASMagnitude(
+ThumbStickData WinWindow::ProcessThumbStickData(
 	float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
 ) const noexcept {
-	ASData data = {};
+	ThumbStickData data = {};
 
 	data.xDirection = x / magnitude;
 	data.yDirection = y / magnitude;
@@ -506,20 +513,18 @@ void WinWindow::SetRenderer(std::shared_ptr<Renderer> renderer) noexcept {
 void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 	m_pInputManager = std::move(ioMan);
 
-	std::vector<RAWINPUTDEVICE> rIDs;
-	size_t keyboardsCount = m_pInputManager->GetKeyboardsCount();
-	size_t mousesCount = m_pInputManager->GetMousesCount();
-	size_t gamepadsCount = m_pInputManager->GetGamepadsCount();
+	std::vector<RAWINPUTDEVICE> rawInputIDs;
+	size_t keyboardCount = m_pInputManager->GetKeyboardCount();
+	size_t mouseCount = m_pInputManager->GetMouseCount();
+	size_t gamepadCount = m_pInputManager->GetGamepadCount();
 
-	if (gamepadsCount >= 5u)
+	if (gamepadCount >= 5u)
 		WIN32_GENERIC_THROW(
 			"Maximum supported XBox gamepads are four."
 		);
 
-	for (size_t index = 0u;
-		index < keyboardsCount;
-		++index)
-		rIDs.emplace_back(
+	for (size_t index = 0u; index < keyboardCount; ++index)
+		rawInputIDs.emplace_back(
 			RAWINPUTDEVICE{
 				HID_USAGE_PAGE_GENERIC,
 				HID_USAGE_GENERIC_KEYBOARD,
@@ -528,10 +533,8 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 			}
 		);
 
-	for(size_t index = 0u;
-		index < mousesCount;
-		++index)
-		rIDs.emplace_back(
+	for(size_t index = 0u; index < mouseCount; ++index)
+		rawInputIDs.emplace_back(
 			RAWINPUTDEVICE{
 				HID_USAGE_PAGE_GENERIC,
 				HID_USAGE_GENERIC_MOUSE,
@@ -552,7 +555,7 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 		if (!gamepad->GetTriggerThreshold())
 			gamepad->SetTriggerThreshold(XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
 
-		rIDs.emplace_back(
+		rawInputIDs.emplace_back(
 			RAWINPUTDEVICE{
 				HID_USAGE_PAGE_GENERIC,
 				HID_USAGE_GENERIC_GAMEPAD,
@@ -563,7 +566,8 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 	}
 
 	if (!RegisterRawInputDevices(
-		rIDs.data(), static_cast<UINT>(rIDs.size()), static_cast<UINT>(sizeof(RAWINPUTDEVICE))
+		std::data(rawInputIDs),
+		static_cast<UINT>(std::size(rawInputIDs)), static_cast<UINT>(sizeof(RAWINPUTDEVICE))
 	))
 		throw WIN32_LAST_EXCEPT();
 }

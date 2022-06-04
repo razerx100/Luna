@@ -1,6 +1,7 @@
 #ifndef I_MOUSE_HPP_
 #define I_MOUSE_HPP_
 #include <utility>
+#include <optional>
 
 typedef std::pair<std::int64_t, std::int64_t> PosDelta;
 
@@ -64,15 +65,11 @@ public:
 	virtual ~IMouse() = default;
 
 	[[nodiscard]]
-	virtual PosDelta GetPosDelta() const noexcept = 0;
-	[[nodiscard]]
-	virtual std::int64_t GetPosDX() const noexcept = 0;
-	[[nodiscard]]
-	virtual std::int64_t GetPosDY() const noexcept = 0;
-	[[nodiscard]]
 	virtual float GetMouseTicks() const noexcept = 0;
 	[[nodiscard]]
-	virtual Event Read() noexcept = 0;
+	virtual std::optional<Event> ReadEvents() noexcept = 0;
+	[[nodiscard]]
+	virtual std::optional<PosDelta> ReadPosDelta() noexcept = 0;
 
 	[[nodiscard]]
 	virtual bool IsInWindow() const noexcept = 0;
