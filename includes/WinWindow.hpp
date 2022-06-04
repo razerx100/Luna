@@ -56,6 +56,7 @@ public:
 	void DisableCursor() noexcept override;
 	void ConfineCursor() noexcept override;
 	void FreeCursor() noexcept override;
+	void UpdateIndependentInputs() const noexcept override;
 
 	[[nodiscard]]
 	std::optional<int> Update() override;

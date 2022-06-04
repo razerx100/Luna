@@ -264,65 +264,6 @@ LRESULT WinWindow::HandleMsg(
 			else if (legacyMessage == WM_KEYUP || legacyMessage == WM_SYSKEYUP)
 				pKeyboardRef->OnKeyReleased(GetSKeyCodes(rawKeyboard.VKey));
 		}
-		else if (rawHeader.dwType == RIM_TYPEHID) {
-			XINPUT_STATE state = {};
-			ZeroMemory(&state, sizeof(XINPUT_STATE));
-
-			auto gamepadCount = static_cast<DWORD>(m_pInputManager->GetGamepadCount());
-
-			for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex) {
-				if (XInputGetState(gamepadIndex, &state) == ERROR_SUCCESS) {
-					IGamepad* pGamepad = m_pInputManager->GetGamepadByIndex(gamepadIndex);
-
-					const XINPUT_GAMEPAD& xData = state.Gamepad;
-
-					pGamepad->SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
-
-					std::uint32_t leftStickDeadZone =
-						pGamepad->GetLeftThumbStickDeadZone();
-					if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
-						magnitude > leftStickDeadZone)
-						pGamepad->OnLeftThumbStickMove(
-							ProcessThumbStickData(
-								magnitude, xData.sThumbLX, xData.sThumbLY,
-								leftStickDeadZone
-							)
-						);
-
-					std::uint32_t rightStickDeadZone =
-						pGamepad->GetRightThumbStickDeadZone();
-					if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
-						magnitude > rightStickDeadZone)
-						pGamepad->OnRightThumbStickMove(
-							ProcessThumbStickData(
-								magnitude, xData.sThumbRX, xData.sThumbRY,
-								rightStickDeadZone
-							)
-						);
-
-					std::uint32_t threshold = pGamepad->GetTriggerThreshold();
-					if (xData.bLeftTrigger > threshold)
-						pGamepad->OnLeftTriggerMove(
-							ProcessDeadZone(
-								static_cast<float>(xData.bLeftTrigger),
-								255u,
-								threshold
-							)
-						);
-
-					if (xData.bRightTrigger > threshold)
-						pGamepad->OnRightTriggerMove(
-							ProcessDeadZone(
-								static_cast<float>(xData.bRightTrigger),
-								255u,
-								threshold
-							)
-						);
-				}
-				else
-					break;
-			}
-		}
 
 		break;
 	}
@@ -572,7 +513,64 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 		throw WIN32_LAST_EXCEPT();
 }
 
-
 float WinWindow::GetAspectRatio() const noexcept {
 	return static_cast<float>(m_width) / m_height;
+}
+
+void WinWindow::UpdateIndependentInputs() const noexcept {
+	XINPUT_STATE state = {};
+	ZeroMemory(&state, sizeof(XINPUT_STATE));
+
+	auto gamepadCount = static_cast<DWORD>(m_pInputManager->GetGamepadCount());
+
+	for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex) {
+		if (XInputGetState(gamepadIndex, &state) == ERROR_SUCCESS) {
+			IGamepad* pGamepad = m_pInputManager->GetGamepadByIndex(gamepadIndex);
+
+			const XINPUT_GAMEPAD& xData = state.Gamepad;
+
+			pGamepad->SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
+
+			std::uint32_t leftStickDeadZone =
+				pGamepad->GetLeftThumbStickDeadZone();
+			if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
+				magnitude > leftStickDeadZone)
+				pGamepad->OnLeftThumbStickMove(
+					ProcessThumbStickData(
+						magnitude, xData.sThumbLX, xData.sThumbLY,
+						leftStickDeadZone
+					)
+				);
+
+			std::uint32_t rightStickDeadZone =
+				pGamepad->GetRightThumbStickDeadZone();
+			if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
+				magnitude > rightStickDeadZone)
+				pGamepad->OnRightThumbStickMove(
+					ProcessThumbStickData(
+						magnitude, xData.sThumbRX, xData.sThumbRY,
+						rightStickDeadZone
+					)
+				);
+
+			std::uint32_t threshold = pGamepad->GetTriggerThreshold();
+			if (xData.bLeftTrigger > threshold)
+				pGamepad->OnLeftTriggerMove(
+					ProcessDeadZone(
+						static_cast<float>(xData.bLeftTrigger),
+						255u,
+						threshold
+					)
+				);
+
+			if (xData.bRightTrigger > threshold)
+				pGamepad->OnRightTriggerMove(
+					ProcessDeadZone(
+						static_cast<float>(xData.bRightTrigger),
+						255u,
+						threshold
+					)
+				);
+		}
+	}
 }
