@@ -5,12 +5,6 @@
 #include <XBoxController.hpp>
 #include <Xinput.h>
 
-#ifdef _IMGUI
-#include <imgui_impl_win32.h>
-// Forward Declaration of ImGui wndproc
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-#endif
-
 WinWindow::WindowClass::WindowClass() noexcept
 	: m_wndClass{} {
 
@@ -77,17 +71,9 @@ WinWindow::WinWindow(
 		throw WIN32_LAST_EXCEPT();
 
 	ShowWindow(m_hWnd, SW_SHOWDEFAULT);
-
-#ifdef _IMGUI
-	ImGui_ImplWin32_Init(m_hWnd);
-#endif
 }
 
 WinWindow::~WinWindow() noexcept {
-#ifdef _IMGUI
-	ImGui_ImplWin32_Shutdown();
-#endif
-
 	SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(
 		DefWindowProcA)
 	);
@@ -122,13 +108,6 @@ LRESULT CALLBACK WinWindow::HandleMsgWrap(
 LRESULT WinWindow::HandleMsg(
 	HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 ) noexcept {
-#ifdef _IMGUI
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-		return true;
-
-	auto imIO = ImGui::GetIO();
-#endif
-
 	switch (msg) {
 	case WM_CLOSE: {
 		DestroyWindow(m_hWnd);
@@ -343,10 +322,6 @@ void WinWindow::EnableCursor() noexcept {
 
 	ShowCursor();
 	FreeCursor();
-
-#ifdef _IMGUI
-	ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
-#endif
 }
 
 void WinWindow::DisableCursor() noexcept {
@@ -354,10 +329,6 @@ void WinWindow::DisableCursor() noexcept {
 
 	HideCursor();
 	ConfineCursor();
-
-#ifdef _IMGUI
-	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
-#endif
 }
 
 void WinWindow::HideCursor() noexcept {

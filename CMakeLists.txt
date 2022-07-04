@@ -20,10 +20,6 @@ endif()
 
 file(GLOB_RECURSE SRC src/*.cpp includes/*.hpp exports/*.hpp templates/*.hpp)
 
-if(IMGUIFLAG STREQUAL "ENABLE")
-    file(GLOB_RECURSE IMGUI ImGui/*.cpp ImGui/*.h)
-endif()
-
 add_library(${PROJECT_NAME} SHARED
     ${SRC} ${IMGUI}
 )
@@ -35,11 +31,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "$<$<CONFIG:DEBUG>:_DEBUG>" "
 target_link_libraries(${PROJECT_NAME} PUBLIC
     Xinput.lib
 )
-
-if(IMGUIFLAG STREQUAL "ENABLE")
-    target_include_directories(${PROJECT_NAME} PRIVATE ImGui/includes/)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE _IMGUI)
-endif()
 
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /fp:fast /MP /EHa /Ot /W4)

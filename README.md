@@ -1,11 +1,8 @@
 # Luna
-Window module using Win32. Needs an instance of InputManager to supply inputs to and GraphicsEngine to get drawing monitor's co-ordinates.
-
-# Third party library Used
-ImGui
+Window module using Win32. Needs an instance of InputManager to manage inputs from Windows and GraphicsEngine to get in use monitor's co-ordinates.
 
 ## Instructions
-Run the appropriate Setup script to configure the project with or without ImGui. The setup scripts use the ***Visual Studio 17 2022*** generator for project generation. But ***Visual Studio 16 2019*** generator should work as well.
+Run the Setup script to configure the project. The setup script uses the ***Visual Studio 17 2022*** generator for project generation.
 
 ## Requirements
 cmake 3.21+.\
