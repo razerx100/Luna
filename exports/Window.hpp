@@ -16,7 +16,7 @@ public:
 	virtual std::optional<int> Update() = 0;
 
 	virtual void UpdateIndependentInputs() const noexcept = 0;
-	virtual void SetWindowIcon(const std::string& iconPath) = 0;
+	virtual void SetWindowIcon(const std::wstring& iconPath) = 0;
 	virtual void EnableCursor() noexcept = 0;
 	virtual void DisableCursor() noexcept = 0;
 	virtual void ConfineCursor() noexcept = 0;

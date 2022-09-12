@@ -362,17 +362,17 @@ void* WinWindow::GetModuleInstance() const noexcept {
 	return reinterpret_cast<void*>(m_windowClass.GetHInstance());
 }
 
-HICON WinWindow::LoadIconFromPath(const char* iconPath) {
-	std::string relativePath = std::filesystem::current_path().string();
+HICON WinWindow::LoadIconFromPath(const wchar_t* iconPath) {
+	std::wstring relativePath = std::filesystem::current_path().wstring();
 
 	return reinterpret_cast<HICON>(
-		LoadImageA(
-			nullptr, (relativePath + "\\" + iconPath).c_str(), IMAGE_ICON, 0, 0,
+		LoadImageW(
+			nullptr, (relativePath + L"\\" + iconPath).c_str(), IMAGE_ICON, 0, 0,
 			LR_DEFAULTSIZE | LR_LOADFROMFILE
 		));
 }
 
-void WinWindow::SetWindowIcon(const std::string& iconPath) {
+void WinWindow::SetWindowIcon(const std::wstring& iconPath) {
 	HICON hIcon = LoadIconFromPath(iconPath.c_str());
 
 	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);

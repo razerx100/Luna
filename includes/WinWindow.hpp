@@ -51,7 +51,7 @@ public:
 	void SetTitle(const std::string& title) override;
 	void SetRenderer(std::shared_ptr<Renderer> renderer) noexcept override;
 
-	void SetWindowIcon(const std::string& iconPath) override;
+	void SetWindowIcon(const std::wstring& iconPath) override;
 	void EnableCursor() noexcept override;
 	void DisableCursor() noexcept override;
 	void ConfineCursor() noexcept override;
@@ -69,7 +69,7 @@ private:
 	void ToggleFullScreenMode();
 	void HideCursor() noexcept;
 	void ShowCursor() noexcept;
-	HICON LoadIconFromPath(const char* iconPath);
+	HICON LoadIconFromPath(const wchar_t* iconPath);
 
 private:
 	std::shared_ptr<InputManager> m_pInputManager;
