@@ -295,7 +295,7 @@ void WinWindow::ToggleFullScreenMode() {
 		if (m_pRenderer) {
 			RECT renderingMonitorCoordinate = {};
 
-			auto [width, height] = m_pRenderer->GetDisplayCoordinates();
+			auto [width, height] = m_pRenderer->GetFirstDisplayCoordinates();
 
 			renderingMonitorCoordinate.right = static_cast<LONG>(width);
 			renderingMonitorCoordinate.bottom = static_cast<LONG>(height);
