@@ -23,18 +23,17 @@ float ProcessDeadZone(
 ThumbStickData ProcessThumbStickData(
 	float magnitude, std::int16_t x, std::int16_t y, std::uint32_t deadZone
 ) noexcept {
-	ThumbStickData data = {};
-
-	data.xDirection = x / magnitude;
-	data.yDirection = y / magnitude;
-
-	data.magnitude = ProcessDeadZone(magnitude, 32767u, deadZone);
+	ThumbStickData data{
+		.magnitude = ProcessDeadZone(magnitude, 32767u, deadZone),
+		.xDirection = x / magnitude,
+		.yDirection = y / magnitude
+	};
 
 	return data;
 }
 
 void CheckXBoxControllerStates(InputManager* inputManager) noexcept {
-	XINPUT_STATE state = {};;
+	XINPUT_STATE state{};
 	ZeroMemory(&state, sizeof(XINPUT_STATE));
 
 	auto gamepadCount = static_cast<DWORD>(inputManager->GetGamepadCount());
@@ -47,8 +46,7 @@ void CheckXBoxControllerStates(InputManager* inputManager) noexcept {
 
 			pGamepad->SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
 
-			std::uint32_t leftStickDeadZone =
-				pGamepad->GetLeftThumbStickDeadZone();
+			std::uint32_t leftStickDeadZone = pGamepad->GetLeftThumbStickDeadZone();
 			if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
 				magnitude > leftStickDeadZone)
 				pGamepad->OnLeftThumbStickMove(
@@ -58,8 +56,7 @@ void CheckXBoxControllerStates(InputManager* inputManager) noexcept {
 					)
 				);
 
-			std::uint32_t rightStickDeadZone =
-				pGamepad->GetRightThumbStickDeadZone();
+			std::uint32_t rightStickDeadZone = pGamepad->GetRightThumbStickDeadZone();
 			if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
 				magnitude > rightStickDeadZone)
 				pGamepad->OnRightThumbStickMove(
@@ -92,7 +89,7 @@ void CheckXBoxControllerStates(InputManager* inputManager) noexcept {
 }
 
 void DisconnectXBoxController(InputManager* inputManager) noexcept {
-	XINPUT_STATE state = {};
+	XINPUT_STATE state{};
 	ZeroMemory(&state, sizeof(XINPUT_STATE));
 
 	auto gamepadCount = static_cast<DWORD>(inputManager->GetGamepadCount());

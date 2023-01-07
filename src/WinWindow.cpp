@@ -5,10 +5,8 @@
 #include <XBoxController.hpp>
 #include <Xinput.h>
 
-WinWindow::WindowClass::WindowClass() noexcept
-	: m_wndClass{} {
-
-	m_wndClass.cbSize = sizeof(m_wndClass);
+WinWindow::WindowClass::WindowClass() noexcept : m_wndClass{} {
+	m_wndClass.cbSize = static_cast<UINT>(sizeof(m_wndClass));
 	m_wndClass.style = CS_OWNDC;
 	m_wndClass.lpfnWndProc = HandleMsgSetup;
 	m_wndClass.cbClsExtra = 0;
@@ -51,19 +49,23 @@ WinWindow::WinWindow(
 
 	m_windowClass.Register();
 
-	RECT wr = {};
-	wr.left = 0;
-	wr.right = static_cast<LONG>(width);
-	wr.top = 0;
-	wr.bottom = static_cast<LONG>(height);
+	RECT wr{
+		.left = 0,
+		.top = 0,
+		.right = static_cast<LONG>(width),
+		.bottom = static_cast<LONG>(height)
+	};
+
 	if (!AdjustWindowRect(&wr, m_windowStyle, FALSE))
 		throw WIN32_LAST_EXCEPT();
 
-	m_hWnd = CreateWindowEx(
+	m_hWnd = CreateWindowExA(
 		0,
 		m_windowClass.GetName(), name,
 		m_windowStyle,
-		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		static_cast<int>(wr.right - wr.left),
+		static_cast<int>(wr.bottom - wr.top),
 		nullptr, nullptr, m_windowClass.GetHInstance(), this
 	);
 
@@ -74,20 +76,18 @@ WinWindow::WinWindow(
 }
 
 WinWindow::~WinWindow() noexcept {
-	SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(
-		DefWindowProcA)
-	);
+	SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(DefWindowProcA));
 }
 
 LRESULT CALLBACK WinWindow::HandleMsgSetup(
 	HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 ) noexcept {
 	if (msg == WM_NCCREATE) {
-		const CREATESTRUCTA* const pCreate = reinterpret_cast<CREATESTRUCTA*>(lParam);
-		WinWindow* const pWnd = static_cast<WinWindow*>(pCreate->lpCreateParams);
+		auto pCreate = reinterpret_cast<CREATESTRUCTA*>(lParam);
+		auto pWnd = static_cast<WinWindow*>(pCreate->lpCreateParams);
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
-		SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(
-			&WinWindow::HandleMsgWrap)
+		SetWindowLongPtr(
+			hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&WinWindow::HandleMsgWrap)
 		);
 
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
@@ -99,9 +99,7 @@ LRESULT CALLBACK WinWindow::HandleMsgSetup(
 LRESULT CALLBACK WinWindow::HandleMsgWrap(
 	HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 ) noexcept {
-	WinWindow* const pWnd = reinterpret_cast<WinWindow*>(
-		GetWindowLongPtr(hWnd, GWLP_USERDATA)
-		);
+	auto pWnd = reinterpret_cast<WinWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 
@@ -164,7 +162,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	/************* KEYBOARD MESSAGES *************/
 	case WM_SYSKEYDOWN: {
-		if ((wParam == VK_RETURN) && (lParam & (1 << 29)))
+		if ((wParam == VK_RETURN) && (lParam & static_cast<LONG_PTR>(1u << 29u)))
 			ToggleFullScreenMode();
 
 		break;
@@ -215,8 +213,9 @@ LRESULT WinWindow::HandleMsg(
 			if (rawMouse.usButtonFlags & RI_MOUSE_WHEEL)
 				pMouseRef->OnWheelDelta(static_cast<short>(rawMouse.usButtonData));
 			else if (rawMouse.usButtonFlags) {
-				auto [pressedButtons, releasedButtons] =
-					ProcessMouseRawButtons(rawMouse.usButtonFlags);
+				auto [pressedButtons, releasedButtons] = ProcessMouseRawButtons(
+					rawMouse.usButtonFlags
+				);
 				pMouseRef->SetPressState(pressedButtons);
 				pMouseRef->SetReleaseState(releasedButtons);
 			}
@@ -231,11 +230,67 @@ LRESULT WinWindow::HandleMsg(
 
 			const RAWKEYBOARD& rawKeyboard = rawInput->data.keyboard;
 
-			std::uint32_t legacyMessage = rawKeyboard.Message;
-			if (legacyMessage == WM_KEYDOWN || legacyMessage == WM_SYSKEYDOWN)
+			UINT legacyMessage = rawKeyboard.Message;
+			if (legacyMessage == WM_KEYDOWN || legacyMessage == WM_SYSKEYDOWN) {
+				switch (rawKeyboard.VKey) {
+				case VK_SHIFT: {
+					if (IsKeyDown(VK_LSHIFT))
+						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_LSHIFT));
+					else if (IsKeyDown(VK_RSHIFT))
+						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_RSHIFT));
+
+					break;
+				}
+				case VK_MENU: {
+					if (IsKeyDown(VK_LMENU))
+						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_LMENU));
+					else if (IsKeyDown(VK_RMENU))
+						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_RMENU));
+
+					break;
+				}
+				case VK_CONTROL: {
+					if (IsKeyDown(VK_LCONTROL))
+						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_LCONTROL));
+					else if (IsKeyDown(VK_RCONTROL))
+						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_RCONTROL));
+
+					break;
+				}
+				}
+
 				pKeyboardRef->OnKeyPressed(GetSKeyCodes(rawKeyboard.VKey));
-			else if (legacyMessage == WM_KEYUP || legacyMessage == WM_SYSKEYUP)
+			}
+			else if (legacyMessage == WM_KEYUP || legacyMessage == WM_SYSKEYUP) {
+				switch (rawKeyboard.VKey) {
+				case VK_SHIFT: {
+					if (!IsKeyDown(VK_LSHIFT))
+						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_LSHIFT));
+					else if (!IsKeyDown(VK_RSHIFT))
+						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_RSHIFT));
+
+					break;
+				}
+				case VK_MENU: {
+					if (!IsKeyDown(VK_LMENU))
+						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_LMENU));
+					else if (!IsKeyDown(VK_RMENU))
+						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_RMENU));
+
+					break;
+				}
+				case VK_CONTROL: {
+					if (!IsKeyDown(VK_LCONTROL))
+						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_LCONTROL));
+					else if (!IsKeyDown(VK_RCONTROL))
+						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_RCONTROL));
+
+					break;
+				}
+				}
+
 				pKeyboardRef->OnKeyReleased(GetSKeyCodes(rawKeyboard.VKey));
+			}
 		}
 
 		break;
@@ -252,7 +307,7 @@ void WinWindow::SetTitle(const std::string& title) {
 }
 
 std::optional<int> WinWindow::Update() {
-	MSG msg = {};
+	MSG msg{};
 
 	while (PeekMessageA(&msg, nullptr , 0, 0, PM_REMOVE)) {
 		if (msg.message == WM_QUIT)
@@ -293,12 +348,12 @@ void WinWindow::ToggleFullScreenMode() {
 
 		// Needed for multi monitor setups
 		if (m_pRenderer) {
-			RECT renderingMonitorCoordinate = {};
-
 			auto [width, height] = m_pRenderer->GetFirstDisplayCoordinates();
 
-			renderingMonitorCoordinate.right = static_cast<LONG>(width);
-			renderingMonitorCoordinate.bottom = static_cast<LONG>(height);
+			RECT renderingMonitorCoordinate{
+				.right = static_cast<LONG>(width),
+				.bottom = static_cast<LONG>(height)
+			};
 
 			SetWindowPos(
 				m_hWnd,
@@ -340,7 +395,7 @@ void WinWindow::ShowCursor() noexcept {
 }
 
 void WinWindow::ConfineCursor() noexcept {
-	RECT rect = {};
+	RECT rect{};
 	GetClientRect(m_hWnd, &rect);
 	MapWindowPoints(m_hWnd, nullptr, reinterpret_cast<POINT*>(&rect), 2);
 	ClipCursor(&rect);
@@ -455,4 +510,13 @@ float WinWindow::GetAspectRatio() const noexcept {
 
 void WinWindow::UpdateIndependentInputs() const noexcept {
 	CheckXBoxControllerStates(m_pInputManager.get());
+}
+
+bool WinWindow::IsKeyDown(int vKey) const noexcept {
+	union {
+		SHORT _signed;
+		unsigned short _unsigned;
+	}keyState{ GetKeyState(vKey) };
+
+	return keyState._unsigned & 0x8000u;
 }

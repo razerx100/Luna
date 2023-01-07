@@ -65,11 +65,16 @@ private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	static LRESULT CALLBACK HandleMsgWrap(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 
+	[[nodiscard]]
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
+	[[nodiscard]]
+	HICON LoadIconFromPath(const wchar_t* iconPath);
+	[[nodiscard]]
+	bool IsKeyDown(int vKey) const noexcept;
+
 	void ToggleFullScreenMode();
 	void HideCursor() noexcept;
 	void ShowCursor() noexcept;
-	HICON LoadIconFromPath(const wchar_t* iconPath);
 
 private:
 	std::shared_ptr<InputManager> m_pInputManager;
@@ -90,9 +95,10 @@ private:
 	std::vector<std::uint8_t> m_rawInputBuffer;
 };
 
+[[nodiscard]]
 SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept;
+[[nodiscard]]
 std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
 	std::uint16_t newState
 ) noexcept;
-
 #endif
