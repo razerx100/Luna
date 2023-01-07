@@ -162,7 +162,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	/************* KEYBOARD MESSAGES *************/
 	case WM_SYSKEYDOWN: {
-		if ((wParam == VK_RETURN) && (lParam & static_cast<LONG_PTR>(1u << 29u)))
+		if ((wParam == VK_RETURN) && (lParam & 0x20000000ul)) // 29th bit checks if Alt is down
 			ToggleFullScreenMode();
 
 		break;
@@ -309,7 +309,7 @@ void WinWindow::SetTitle(const std::string& title) {
 std::optional<int> WinWindow::Update() {
 	MSG msg{};
 
-	while (PeekMessageA(&msg, nullptr , 0, 0, PM_REMOVE)) {
+	while (PeekMessageA(&msg, nullptr , 0u, 0u, PM_REMOVE)) {
 		if (msg.message == WM_QUIT)
 			return static_cast<int>(msg.wParam);
 
@@ -397,7 +397,7 @@ void WinWindow::ShowCursor() noexcept {
 void WinWindow::ConfineCursor() noexcept {
 	RECT rect{};
 	GetClientRect(m_hWnd, &rect);
-	MapWindowPoints(m_hWnd, nullptr, reinterpret_cast<POINT*>(&rect), 2);
+	MapWindowPoints(m_hWnd, nullptr, reinterpret_cast<POINT*>(&rect), 2u);
 	ClipCursor(&rect);
 }
 
@@ -516,7 +516,7 @@ bool WinWindow::IsKeyDown(int vKey) const noexcept {
 	union {
 		SHORT _signed;
 		unsigned short _unsigned;
-	}keyState{ GetKeyState(vKey) };
+	}keyState{ GetAsyncKeyState(vKey) };
 
 	return keyState._unsigned & 0x8000u;
 }
