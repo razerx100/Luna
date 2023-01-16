@@ -5,7 +5,10 @@
 
 class Renderer {
 public:
-	using Resolution = std::pair<std::uint64_t, std::uint64_t>;
+	struct Resolution {
+		std::uint64_t width;
+		std::uint64_t height;
+	};
 
 	virtual ~Renderer() = default;
 
