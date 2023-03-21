@@ -188,17 +188,22 @@ LRESULT WinWindow::HandleMsg(
 	}
 	/************* RAW MESSAGES *************/
 	case WM_INPUT: {
-		// RID_INPUT in GetRawInputData returns the sizeof(RAWINPUT)
-		static constexpr auto rawBufferSize = static_cast<UINT>(sizeof(RAWINPUT));
 		static constexpr auto rawInputHeaderSize = static_cast<UINT>(sizeof(RAWINPUTHEADER));
 
-		UINT bufferSize = rawBufferSize;
+		UINT bufferSize = 0u;
+		GetRawInputData(
+			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &bufferSize,
+			rawInputHeaderSize
+		);
+
+		if (bufferSize > std::size(m_rawInputBuffer))
+			m_rawInputBuffer.resize(bufferSize);
 
 		// Get raw data by passing buffer
 		if (GetRawInputData(
-			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
-			std::data(m_rawInputBuffer), &bufferSize, rawInputHeaderSize
-		) != rawBufferSize)
+			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, std::data(m_rawInputBuffer),
+			&bufferSize, rawInputHeaderSize
+		) != bufferSize)
 			break;
 
 		auto rawInput = reinterpret_cast<const RAWINPUT*>(std::data(m_rawInputBuffer));
