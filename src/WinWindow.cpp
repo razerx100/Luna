@@ -1,5 +1,6 @@
 #include <WinWindow.hpp>
 #include <WindowThrowMacros.hpp>
+#include <cmath>
 #include <filesystem>
 #include <hidusage.h>
 #include <XBoxController.hpp>
@@ -45,7 +46,7 @@ WinWindow::WinWindow(
 	m_fullScreenMode(false),
 	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
 	m_windowRect{},
-	m_cursorEnabled(true), m_isMinimized(false) {
+	m_cursorEnabled(true), m_isMinimized(false), m_multimonitor{ false } {
 
 	m_windowClass.Register();
 
@@ -168,36 +169,36 @@ LRESULT WinWindow::HandleMsg(
 		break;
 	}
 	case WM_CHAR: {
-#ifdef _IMGUI
-		if (imIO.WantCaptureKeyboard)
-			break;
-#endif
-
 		if (m_pInputManager)
 			m_pInputManager->GetKeyboard()->OnChar(static_cast<char>(wParam));
 
 		break;
 	}
 	/************* END KEYBOARD MESSAGES *************/
-	/************* RAW MOUSE MESSAGES *************/
+	case WM_MOUSEMOVE: {
+		if (!m_multimonitor) {
+			std::uint16_t xCoord = LOWORD(lParam);
+			std::uint16_t yCoord = HIWORD(lParam);
+
+			IMouse* pMouseRef = m_pInputManager->GetMouse();
+			pMouseRef->SetCurrentCursorCoord(xCoord, yCoord);
+		}
+
+		break;
+	}
+	/************* RAW MESSAGES *************/
 	case WM_INPUT: {
-		UINT size = 0;
+		// RID_INPUT in GetRawInputData returns the sizeof(RAWINPUT)
+		static constexpr auto rawBufferSize = static_cast<UINT>(sizeof(RAWINPUT));
+		static constexpr auto rawInputHeaderSize = static_cast<UINT>(sizeof(RAWINPUTHEADER));
 
-		// Get raw data size with nullptr as buffer
-		if (GetRawInputData(
-			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &size,
-			static_cast<UINT>(sizeof(RAWINPUTHEADER))
-		) == -1)
-			break;
-
-		m_rawInputBuffer.resize(size);
+		UINT bufferSize = rawBufferSize;
 
 		// Get raw data by passing buffer
 		if (GetRawInputData(
 			reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
-			std::data(m_rawInputBuffer), &size,
-			static_cast<UINT>(sizeof(RAWINPUTHEADER))
-		) != size)
+			std::data(m_rawInputBuffer), &bufferSize, rawInputHeaderSize
+		) != rawBufferSize)
 			break;
 
 		auto rawInput = reinterpret_cast<const RAWINPUT*>(std::data(m_rawInputBuffer));
@@ -210,9 +211,10 @@ LRESULT WinWindow::HandleMsg(
 
 			const RAWMOUSE& rawMouse = rawInput->data.mouse;
 
-			if (rawMouse.usButtonFlags & RI_MOUSE_WHEEL)
-				pMouseRef->OnWheelDelta(static_cast<short>(rawMouse.usButtonData));
-			else if (rawMouse.usButtonFlags) {
+			if (rawMouse.usButtonFlags) {
+				if (rawMouse.usButtonFlags & RI_MOUSE_WHEEL)
+					pMouseRef->OnWheelDelta(static_cast<short>(rawMouse.usButtonData));
+
 				auto [pressedButtons, releasedButtons] = ProcessMouseRawButtons(
 					rawMouse.usButtonFlags
 				);
@@ -220,8 +222,30 @@ LRESULT WinWindow::HandleMsg(
 				pMouseRef->SetReleaseState(releasedButtons);
 			}
 
-			if (rawMouse.lLastX != 0 || rawMouse.lLastY != 0)
-				pMouseRef->OnMouseMove(rawMouse.lLastX, rawMouse.lLastY);
+			if(m_multimonitor)
+				if (rawMouse.lLastX != 0 || rawMouse.lLastY != 0) {
+					constexpr USHORT multipleMonitor =
+						MOUSE_MOVE_ABSOLUTE || MOUSE_VIRTUAL_DESKTOP;
+
+					if (rawMouse.usButtonFlags & multipleMonitor) {
+						RECT windowRect{};
+						GetWindowRect(m_hWnd, &windowRect);
+
+						int vDisplayHeight = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+						int vDisplayWidth = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+						static constexpr float absoluteLimit = 65535.f;
+
+						std::uint16_t absoluteX = static_cast<uint16_t>(std::round(
+							(rawMouse.lLastX / absoluteLimit) * vDisplayWidth
+						));
+						std::uint16_t absoluteY = static_cast<uint16_t>(std::round(
+							(rawMouse.lLastY / absoluteLimit) * vDisplayHeight
+						));
+
+						pMouseRef->SetCurrentCursorCoord(absoluteX, absoluteY);
+					}
+				}
 		}
 		else if (rawHeader.dwType == RIM_TYPEKEYBOARD) {
 			IKeyboard* pKeyboardRef = m_pInputManager->GetKeyboardByHandle(
@@ -295,7 +319,7 @@ LRESULT WinWindow::HandleMsg(
 
 		break;
 	}
-	/************* END RAW MOUSE MESSAGES *************/
+	/************* END RAW MESSAGES *************/
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -502,6 +526,10 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 		static_cast<UINT>(std::size(rawInputIDs)), static_cast<UINT>(sizeof(RAWINPUTDEVICE))
 	))
 		throw WIN32_LAST_EXCEPT();
+
+	// RID_INPUT in GetRawInputData returns the sizeof(RAWINPUT) and RID_HEADER returns
+	// the sizeof(RAWINPUTHEADER)
+	m_rawInputBuffer.resize(sizeof(RAWINPUT));
 }
 
 float WinWindow::GetAspectRatio() const noexcept {

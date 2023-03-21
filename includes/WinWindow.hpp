@@ -93,6 +93,7 @@ private:
 	bool m_cursorEnabled;
 	bool m_isMinimized;
 	std::vector<std::uint8_t> m_rawInputBuffer;
+	bool m_multimonitor;
 };
 
 [[nodiscard]]

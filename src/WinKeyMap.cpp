@@ -1,6 +1,10 @@
+#include <bitset>
+#include <IGamepad.hpp>
+#include <IMouse.hpp>
 #include <InputManager.hpp>
 #include <CleanWin.hpp>
 #include <WinWindow.hpp>
+#include <Xinput.h>
 
 using enum SKeyCodes;
 
@@ -64,36 +68,64 @@ SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept {
 	return WinKeyMap[nativeKeycode];
 }
 
-static constexpr std::uint16_t mouseReleaseFlag = 0x2AAu;
-static constexpr std::uint16_t mousePressFlag = 0x155u;
+static const size_t pressChecks[] = {
+	RI_MOUSE_BUTTON_1_DOWN,
+	RI_MOUSE_BUTTON_2_DOWN,
+	RI_MOUSE_BUTTON_3_DOWN,
+	RI_MOUSE_BUTTON_4_DOWN,
+	RI_MOUSE_BUTTON_5_DOWN
+};
 
-std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(
-	std::uint16_t newState
-) noexcept {
-	std::uint16_t onFlags = newState & mousePressFlag;
-	std::uint16_t offFlags = (newState & mouseReleaseFlag) >> 1u;
+static const size_t releaseChecks[] = {
+	RI_MOUSE_BUTTON_1_UP,
+	RI_MOUSE_BUTTON_2_UP,
+	RI_MOUSE_BUTTON_3_UP,
+	RI_MOUSE_BUTTON_4_UP,
+	RI_MOUSE_BUTTON_5_UP
+};
 
-	std::uint8_t mapOn = 0u;
-	std::uint8_t mapOff = 0u;
+std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(std::uint16_t newState) noexcept {
+	static std::bitset<16u> newStateCheck{};
+	newStateCheck = newState;
 
-	for (size_t index = 0, index1 = 0; index < 16u; index += 2, ++index1) {
-		mapOn |= static_cast<bool>(onFlags & (1u << index)) << index1;
-		mapOff |= static_cast<bool>(offFlags & (1u << index)) << index1;
+	std::uint8_t pressFlags = 0u;
+	std::uint8_t releaseFlags = 0u;
+
+	static constexpr auto mouseButtonCount = static_cast<size_t>(MouseButtons::Invalid);
+
+	for (size_t index = 0u; index < mouseButtonCount; ++index) {
+		pressFlags |= newStateCheck[pressChecks[index]] << index;
+		releaseFlags |= newStateCheck[releaseChecks[index]] << index;
 	}
 
-	return { mapOn, mapOff };
+	return { pressFlags, releaseFlags };
 }
 
+static const size_t gamepadButtonChecks[] = {
+	XINPUT_GAMEPAD_DPAD_UP,
+	XINPUT_GAMEPAD_DPAD_DOWN,
+	XINPUT_GAMEPAD_DPAD_LEFT,
+	XINPUT_GAMEPAD_DPAD_RIGHT,
+	XINPUT_GAMEPAD_START,
+	XINPUT_GAMEPAD_BACK,
+	XINPUT_GAMEPAD_LEFT_THUMB,
+	XINPUT_GAMEPAD_RIGHT_THUMB,
+	XINPUT_GAMEPAD_LEFT_SHOULDER,
+	XINPUT_GAMEPAD_RIGHT_SHOULDER,
+	XINPUT_GAMEPAD_A,
+	XINPUT_GAMEPAD_B,
+	XINPUT_GAMEPAD_X,
+	XINPUT_GAMEPAD_Y
+};
+
 std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept {
-	std::uint16_t map = 0u;
+	static std::bitset<16u> newStateCheck{};
+	newStateCheck = state;
 
-	// 1 to 100
-	for (size_t index = 0; index < 12u; ++index)
-		map |= static_cast<bool>(state & (1u << index)) << index;
+	std::uint16_t buttonFlags = 0u;
+	static constexpr auto gamepadButtonCount = static_cast<size_t>(XBoxButton::Invalid);
+	for (size_t index = 0u; index < gamepadButtonCount; ++index)
+		buttonFlags |= newStateCheck[gamepadButtonChecks[index]] << index;
 
-	// 1000 to 8000
-	for (size_t index = 12, index1 = 10; index < 16u; ++index, ++index1)
-		map |= static_cast<bool>(state & (1u << index)) << index1;
-
-	return map;
+	return buttonFlags;
 }
