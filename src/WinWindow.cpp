@@ -233,22 +233,26 @@ LRESULT WinWindow::HandleMsg(
 						MOUSE_MOVE_ABSOLUTE || MOUSE_VIRTUAL_DESKTOP;
 
 					if (rawMouse.usButtonFlags & multipleMonitor) {
-						RECT windowRect{};
-						GetWindowRect(m_hWnd, &windowRect);
 
 						int vDisplayHeight = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 						int vDisplayWidth = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
 						static constexpr float absoluteLimit = 65535.f;
 
-						std::uint16_t absoluteX = static_cast<uint16_t>(std::round(
+						float absoluteX = std::round(
 							(rawMouse.lLastX / absoluteLimit) * vDisplayWidth
-						));
-						std::uint16_t absoluteY = static_cast<uint16_t>(std::round(
+						);
+						float absoluteY = std::round(
 							(rawMouse.lLastY / absoluteLimit) * vDisplayHeight
-						));
+						);
 
-						pMouseRef->SetCurrentCursorCoord(absoluteX, absoluteY);
+						RECT windowRect{};
+						GetWindowRect(m_hWnd, &windowRect);
+
+						pMouseRef->SetCurrentCursorCoord(
+							static_cast<std::uint16_t>(absoluteX - windowRect.left),
+							static_cast<std::uint16_t>(absoluteY - windowRect.top)
+						);
 					}
 				}
 		}
