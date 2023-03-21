@@ -68,7 +68,7 @@ SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept {
 	return WinKeyMap[nativeKeycode];
 }
 
-static const size_t pressChecks[] = {
+static const std::uint16_t pressChecks[] = {
 	RI_MOUSE_BUTTON_1_DOWN,
 	RI_MOUSE_BUTTON_2_DOWN,
 	RI_MOUSE_BUTTON_3_DOWN,
@@ -76,7 +76,7 @@ static const size_t pressChecks[] = {
 	RI_MOUSE_BUTTON_5_DOWN
 };
 
-static const size_t releaseChecks[] = {
+static const std::uint16_t releaseChecks[] = {
 	RI_MOUSE_BUTTON_1_UP,
 	RI_MOUSE_BUTTON_2_UP,
 	RI_MOUSE_BUTTON_3_UP,
@@ -84,24 +84,30 @@ static const size_t releaseChecks[] = {
 	RI_MOUSE_BUTTON_5_UP
 };
 
-std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(std::uint16_t newState) noexcept {
-	static std::bitset<16u> newStateCheck{};
-	newStateCheck = newState;
+[[nodiscard]]
+static std::uint16_t MapBit(
+	std::uint16_t state, std::uint16_t const* checks, size_t index
+) noexcept {
+	size_t check = checks[index];
 
+	return ((state & check) == check) << index;
+}
+
+std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(std::uint16_t newState) noexcept {
 	std::uint8_t pressFlags = 0u;
 	std::uint8_t releaseFlags = 0u;
 
 	static constexpr auto mouseButtonCount = static_cast<size_t>(MouseButtons::Invalid);
 
 	for (size_t index = 0u; index < mouseButtonCount; ++index) {
-		pressFlags |= newStateCheck[pressChecks[index]] << index;
-		releaseFlags |= newStateCheck[releaseChecks[index]] << index;
+		pressFlags |= MapBit(newState, pressChecks, index);
+		releaseFlags |= MapBit(newState, releaseChecks, index);
 	}
 
 	return { pressFlags, releaseFlags };
 }
 
-static const size_t gamepadButtonChecks[] = {
+static const std::uint16_t gamepadButtonChecks[] = {
 	XINPUT_GAMEPAD_DPAD_UP,
 	XINPUT_GAMEPAD_DPAD_DOWN,
 	XINPUT_GAMEPAD_DPAD_LEFT,
@@ -119,13 +125,11 @@ static const size_t gamepadButtonChecks[] = {
 };
 
 std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept {
-	static std::bitset<16u> newStateCheck{};
-	newStateCheck = state;
-
 	std::uint16_t buttonFlags = 0u;
+
 	static constexpr auto gamepadButtonCount = static_cast<size_t>(XBoxButton::Invalid);
 	for (size_t index = 0u; index < gamepadButtonCount; ++index)
-		buttonFlags |= newStateCheck[gamepadButtonChecks[index]] << index;
+		buttonFlags |= MapBit(state, gamepadButtonChecks, index);
 
 	return buttonFlags;
 }
