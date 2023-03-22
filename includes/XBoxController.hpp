@@ -9,5 +9,4 @@ void DisconnectXBoxController(InputManager* inputManager) noexcept;
 
 [[nodiscard]]
 std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept;
-
 #endif

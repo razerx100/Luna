@@ -153,11 +153,8 @@ LRESULT WinWindow::HandleMsg(
 		break;
 	}
 	case WM_INPUT_DEVICE_CHANGE: {
-		if (wParam == GIDC_REMOVAL && m_pInputManager) {
-			m_pInputManager->DisconnectDevice(static_cast<std::uint64_t>(lParam));
-
+		if (wParam == GIDC_REMOVAL && m_pInputManager)
 			DisconnectXBoxController(m_pInputManager.get());
-		}
 
 		break;
 	}
@@ -170,7 +167,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	case WM_CHAR: {
 		if (m_pInputManager)
-			m_pInputManager->GetKeyboard()->OnChar(static_cast<char>(wParam));
+			m_pInputManager->GetKeyboard().OnChar(static_cast<char>(wParam));
 
 		break;
 	}
@@ -180,8 +177,8 @@ LRESULT WinWindow::HandleMsg(
 			std::uint16_t xCoord = LOWORD(lParam);
 			std::uint16_t yCoord = HIWORD(lParam);
 
-			IMouse* pMouseRef = m_pInputManager->GetMouse();
-			pMouseRef->SetCurrentCursorCoord(xCoord, yCoord);
+			IMouse& mouse = m_pInputManager->GetMouse();
+			mouse.SetCurrentCursorCoord(xCoord, yCoord);
 		}
 
 		break;
@@ -210,21 +207,19 @@ LRESULT WinWindow::HandleMsg(
 		const RAWINPUTHEADER& rawHeader = rawInput->header;
 
 		if (rawHeader.dwType == RIM_TYPEMOUSE) {
-			IMouse* pMouseRef = m_pInputManager->GetMouseByHandle(
-				reinterpret_cast<std::uint64_t>(rawHeader.hDevice)
-			);
+			IMouse& mouse = m_pInputManager->GetMouse();
 
 			const RAWMOUSE& rawMouse = rawInput->data.mouse;
 
 			if (rawMouse.usButtonFlags) {
 				if (rawMouse.usButtonFlags & RI_MOUSE_WHEEL)
-					pMouseRef->OnWheelDelta(static_cast<short>(rawMouse.usButtonData));
+					mouse.OnWheelDelta(static_cast<short>(rawMouse.usButtonData));
 
 				auto [pressedButtons, releasedButtons] = ProcessMouseRawButtons(
 					rawMouse.usButtonFlags
 				);
-				pMouseRef->SetPressState(pressedButtons);
-				pMouseRef->SetReleaseState(releasedButtons);
+				mouse.SetPressState(pressedButtons);
+				mouse.SetReleaseState(releasedButtons);
 			}
 
 			if(m_multimonitor)
@@ -249,7 +244,7 @@ LRESULT WinWindow::HandleMsg(
 						RECT windowRect{};
 						GetWindowRect(m_hWnd, &windowRect);
 
-						pMouseRef->SetCurrentCursorCoord(
+						mouse.SetCurrentCursorCoord(
 							static_cast<std::uint16_t>(absoluteX - windowRect.left),
 							static_cast<std::uint16_t>(absoluteY - windowRect.top)
 						);
@@ -257,9 +252,7 @@ LRESULT WinWindow::HandleMsg(
 				}
 		}
 		else if (rawHeader.dwType == RIM_TYPEKEYBOARD) {
-			IKeyboard* pKeyboardRef = m_pInputManager->GetKeyboardByHandle(
-				reinterpret_cast<std::uint64_t>(rawHeader.hDevice)
-			);
+			IKeyboard& keyboard = m_pInputManager->GetKeyboard();
 
 			const RAWKEYBOARD& rawKeyboard = rawInput->data.keyboard;
 
@@ -268,61 +261,61 @@ LRESULT WinWindow::HandleMsg(
 				switch (rawKeyboard.VKey) {
 				case VK_SHIFT: {
 					if (IsKeyDown(VK_LSHIFT))
-						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_LSHIFT));
+						keyboard.OnKeyPressed(GetSKeyCodes(VK_LSHIFT));
 					else if (IsKeyDown(VK_RSHIFT))
-						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_RSHIFT));
+						keyboard.OnKeyPressed(GetSKeyCodes(VK_RSHIFT));
 
 					break;
 				}
 				case VK_MENU: {
 					if (IsKeyDown(VK_LMENU))
-						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_LMENU));
+						keyboard.OnKeyPressed(GetSKeyCodes(VK_LMENU));
 					else if (IsKeyDown(VK_RMENU))
-						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_RMENU));
+						keyboard.OnKeyPressed(GetSKeyCodes(VK_RMENU));
 
 					break;
 				}
 				case VK_CONTROL: {
 					if (IsKeyDown(VK_LCONTROL))
-						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_LCONTROL));
+						keyboard.OnKeyPressed(GetSKeyCodes(VK_LCONTROL));
 					else if (IsKeyDown(VK_RCONTROL))
-						pKeyboardRef->OnKeyPressed(GetSKeyCodes(VK_RCONTROL));
+						keyboard.OnKeyPressed(GetSKeyCodes(VK_RCONTROL));
 
 					break;
 				}
 				}
 
-				pKeyboardRef->OnKeyPressed(GetSKeyCodes(rawKeyboard.VKey));
+				keyboard.OnKeyPressed(GetSKeyCodes(rawKeyboard.VKey));
 			}
 			else if (legacyMessage == WM_KEYUP || legacyMessage == WM_SYSKEYUP) {
 				switch (rawKeyboard.VKey) {
 				case VK_SHIFT: {
 					if (!IsKeyDown(VK_LSHIFT))
-						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_LSHIFT));
+						keyboard.OnKeyReleased(GetSKeyCodes(VK_LSHIFT));
 					else if (!IsKeyDown(VK_RSHIFT))
-						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_RSHIFT));
+						keyboard.OnKeyReleased(GetSKeyCodes(VK_RSHIFT));
 
 					break;
 				}
 				case VK_MENU: {
 					if (!IsKeyDown(VK_LMENU))
-						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_LMENU));
+						keyboard.OnKeyReleased(GetSKeyCodes(VK_LMENU));
 					else if (!IsKeyDown(VK_RMENU))
-						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_RMENU));
+						keyboard.OnKeyReleased(GetSKeyCodes(VK_RMENU));
 
 					break;
 				}
 				case VK_CONTROL: {
 					if (!IsKeyDown(VK_LCONTROL))
-						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_LCONTROL));
+						keyboard.OnKeyReleased(GetSKeyCodes(VK_LCONTROL));
 					else if (!IsKeyDown(VK_RCONTROL))
-						pKeyboardRef->OnKeyReleased(GetSKeyCodes(VK_RCONTROL));
+						keyboard.OnKeyReleased(GetSKeyCodes(VK_RCONTROL));
 
 					break;
 				}
 				}
 
-				pKeyboardRef->OnKeyReleased(GetSKeyCodes(rawKeyboard.VKey));
+				keyboard.OnKeyReleased(GetSKeyCodes(rawKeyboard.VKey));
 			}
 		}
 
@@ -479,8 +472,25 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 	m_pInputManager = std::move(ioMan);
 
 	std::vector<RAWINPUTDEVICE> rawInputIDs;
-	size_t keyboardCount = m_pInputManager->GetKeyboardCount();
-	size_t mouseCount = m_pInputManager->GetMouseCount();
+
+	rawInputIDs.emplace_back(
+		RAWINPUTDEVICE{
+			HID_USAGE_PAGE_GENERIC,
+			HID_USAGE_GENERIC_KEYBOARD,
+			RIDEV_DEVNOTIFY,
+			m_hWnd
+		}
+	);
+
+	rawInputIDs.emplace_back(
+		RAWINPUTDEVICE{
+			HID_USAGE_PAGE_GENERIC,
+			HID_USAGE_GENERIC_MOUSE,
+			RIDEV_DEVNOTIFY,
+			m_hWnd
+		}
+	);
+
 	size_t gamepadCount = m_pInputManager->GetGamepadCount();
 
 	if (gamepadCount >= 5u)
@@ -488,37 +498,17 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan) {
 			"Maximum supported XBox gamepads are four."
 		);
 
-	for (size_t index = 0u; index < keyboardCount; ++index)
-		rawInputIDs.emplace_back(
-			RAWINPUTDEVICE{
-				HID_USAGE_PAGE_GENERIC,
-				HID_USAGE_GENERIC_KEYBOARD,
-				RIDEV_DEVNOTIFY,
-				m_hWnd
-			}
-		);
+	for (size_t index = 0u; index < gamepadCount; ++index) {
+		IGamepad& gamepad = m_pInputManager->GetGamepad(index);
 
-	for(size_t index = 0u; index < mouseCount; ++index)
-		rawInputIDs.emplace_back(
-			RAWINPUTDEVICE{
-				HID_USAGE_PAGE_GENERIC,
-				HID_USAGE_GENERIC_MOUSE,
-				RIDEV_DEVNOTIFY,
-				m_hWnd
-			}
-		);
+		if(!gamepad.GetLeftThumbStickDeadZone())
+			gamepad.SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
 
-	std::vector<IGamepad*> pGamepadRefs = m_pInputManager->GetGamepadRefs();
+		if(!gamepad.GetRightThumbStickDeadZone())
+			gamepad.SetRightThumbStickDeadZone(XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
 
-	for (IGamepad* gamepad : pGamepadRefs) {
-		if(!gamepad->GetLeftThumbStickDeadZone())
-			gamepad->SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-
-		if(!gamepad->GetRightThumbStickDeadZone())
-			gamepad->SetRightThumbStickDeadZone(XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
-
-		if (!gamepad->GetTriggerThreshold())
-			gamepad->SetTriggerThreshold(XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+		if (!gamepad.GetTriggerThreshold())
+			gamepad.SetTriggerThreshold(XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
 
 		rawInputIDs.emplace_back(
 			RAWINPUTDEVICE{

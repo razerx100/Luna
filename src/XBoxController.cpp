@@ -40,35 +40,35 @@ void CheckXBoxControllerStates(InputManager* inputManager) noexcept {
 
 	for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex) {
 		if (XInputGetState(gamepadIndex, &state) == ERROR_SUCCESS) {
-			IGamepad* pGamepad = inputManager->GetGamepadByIndex(gamepadIndex);
+			IGamepad& gamepad = inputManager->GetGamepad(gamepadIndex);
 
 			const XINPUT_GAMEPAD& xData = state.Gamepad;
 
-			pGamepad->SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
+			gamepad.SetRawButtonState(ProcessGamepadRawButtons(xData.wButtons));
 
-			std::uint32_t leftStickDeadZone = pGamepad->GetLeftThumbStickDeadZone();
+			std::uint32_t leftStickDeadZone = gamepad.GetLeftThumbStickDeadZone();
 			if (float magnitude = GetMagnitude(xData.sThumbLX, xData.sThumbLY);
 				magnitude > leftStickDeadZone)
-				pGamepad->OnLeftThumbStickMove(
+				gamepad.OnLeftThumbStickMove(
 					ProcessThumbStickData(
 						magnitude, xData.sThumbLX, xData.sThumbLY,
 						leftStickDeadZone
 					)
 				);
 
-			std::uint32_t rightStickDeadZone = pGamepad->GetRightThumbStickDeadZone();
+			std::uint32_t rightStickDeadZone = gamepad.GetRightThumbStickDeadZone();
 			if (float magnitude = GetMagnitude(xData.sThumbRX, xData.sThumbRY);
 				magnitude > rightStickDeadZone)
-				pGamepad->OnRightThumbStickMove(
+				gamepad.OnRightThumbStickMove(
 					ProcessThumbStickData(
 						magnitude, xData.sThumbRX, xData.sThumbRY,
 						rightStickDeadZone
 					)
 				);
 
-			std::uint32_t threshold = pGamepad->GetTriggerThreshold();
+			std::uint32_t threshold = gamepad.GetTriggerThreshold();
 			if (xData.bLeftTrigger > threshold)
-				pGamepad->OnLeftTriggerMove(
+				gamepad.OnLeftTriggerMove(
 					ProcessDeadZone(
 						static_cast<float>(xData.bLeftTrigger),
 						255u,
@@ -77,7 +77,7 @@ void CheckXBoxControllerStates(InputManager* inputManager) noexcept {
 				);
 
 			if (xData.bRightTrigger > threshold)
-				pGamepad->OnRightTriggerMove(
+				gamepad.OnRightTriggerMove(
 					ProcessDeadZone(
 						static_cast<float>(xData.bRightTrigger),
 						255u,
@@ -96,5 +96,5 @@ void DisconnectXBoxController(InputManager* inputManager) noexcept {
 
 	for (DWORD gamepadIndex = 0u; gamepadIndex < gamepadCount; ++gamepadIndex)
 		if (XInputGetState(gamepadIndex, &state) == ERROR_DEVICE_NOT_CONNECTED)
-			inputManager->DisconnectGamepadByIndex(gamepadIndex);
+			inputManager->DisconnectGamepad(gamepadIndex);
 }

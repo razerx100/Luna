@@ -83,5 +83,6 @@ public:
 	virtual void OnMouseLeave() noexcept = 0;
 	virtual void OnMouseEnter() noexcept = 0;
 	virtual void OnWheelDelta(std::int16_t delta) noexcept = 0;
+	virtual void ClearState() noexcept = 0;
 };
 #endif
