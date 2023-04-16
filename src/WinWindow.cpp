@@ -6,20 +6,13 @@
 #include <XBoxController.hpp>
 #include <Xinput.h>
 
-WinWindow::WindowClass::WindowClass() noexcept : m_wndClass{} {
-	m_wndClass.cbSize = static_cast<UINT>(sizeof(m_wndClass));
-	m_wndClass.style = CS_OWNDC;
-	m_wndClass.lpfnWndProc = HandleMsgSetup;
-	m_wndClass.cbClsExtra = 0;
-	m_wndClass.cbWndExtra = 0;
-	m_wndClass.hInstance = nullptr;
-	m_wndClass.hIcon = nullptr;
-	m_wndClass.hCursor = nullptr;
-	m_wndClass.hbrBackground = nullptr;
-	m_wndClass.lpszMenuName = nullptr;
-	m_wndClass.lpszClassName = GetName();
-	m_wndClass.hIconSm = nullptr;
-}
+WinWindow::WindowClass::WindowClass() noexcept
+	: m_wndClass{
+		.cbSize = static_cast<UINT>(sizeof(m_wndClass)),
+		.style = CS_OWNDC,
+		.lpfnWndProc = HandleMsgSetup,
+		.lpszClassName = GetName()
+	} {}
 
 WinWindow::WindowClass::~WindowClass() noexcept {
 	UnregisterClassA(GetName(), m_wndClass.hInstance);
@@ -42,11 +35,11 @@ HINSTANCE WinWindow::WindowClass::GetHInstance() const noexcept {
 // Window
 WinWindow::WinWindow(
 	std::uint32_t width, std::uint32_t height, const char* name
-) : m_width(width), m_height(height), m_hWnd(nullptr),
-	m_fullScreenMode(false),
-	m_windowStyle(WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU),
-	m_windowRect{},
-	m_cursorEnabled(true), m_isMinimized(false), m_multimonitor{ false } {
+) : m_width{ width }, m_height{ height }, m_hWnd{ nullptr },
+	m_fullScreenMode{ false },
+	m_windowStyle{ WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU },
+	m_windowRect{}, m_windowClass{},
+	m_cursorEnabled{ true }, m_isMinimized{ false }, m_multimonitor{ false } {
 
 	m_windowClass.Register();
 

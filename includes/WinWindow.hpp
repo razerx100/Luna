@@ -7,8 +7,6 @@
 #include <Renderer.hpp>
 
 class WinWindow final : public Window {
-private:
-
 	class WindowClass {
 	public:
 		WindowClass() noexcept;
@@ -62,8 +60,12 @@ public:
 	std::optional<int> Update() override;
 
 private:
-	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
-	static LRESULT CALLBACK HandleMsgWrap(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
+	static LRESULT CALLBACK HandleMsgSetup(
+		HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
+	) noexcept;
+	static LRESULT CALLBACK HandleMsgWrap(
+		HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
+	) noexcept;
 
 	[[nodiscard]]
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
@@ -86,7 +88,7 @@ private:
 	HWND m_hWnd;
 
 	bool m_fullScreenMode;
-	std::uint32_t m_windowStyle;
+	DWORD m_windowStyle;
 	RECT m_windowRect;
 	WindowClass m_windowClass;
 
