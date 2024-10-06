@@ -1,60 +1,29 @@
 #include <Exception.hpp>
-#include <sstream>
+#include <format>
 
-Exception::Exception(int line, const char* file) noexcept
-		: m_line(line), m_file(file) {}
-
-void Exception::GenerateWhatBuffer() noexcept {
-	std::ostringstream oss;
-	oss << GetType() << "\n"
-		<< GetOriginString();
-	m_whatBuffer = oss.str();
-}
-
-const char* Exception::what() const noexcept {
-	return m_whatBuffer.c_str();
-}
-
-const char* Exception::GetType() const noexcept {
-	return "Exception";
-}
-
-int Exception::GetLine() const noexcept {
-	return m_line;
-}
-
-const std::string& Exception::GetFile() const noexcept {
-	return m_file;
-}
-
-std::string Exception::GetOriginString() const noexcept {
-	std::ostringstream oss;
-	oss << "[File] " << m_file << "\n"
-		<< "[Line] " << m_line;
-
-	return oss.str();
-}
-
-GenericException::GenericException(
-	int line, const char* file,
-	const std::string& errorText
-) noexcept
-	: Exception(line, file), m_errorText(errorText) {
+Exception::Exception(std::int32_t line, std::string file)
+	: m_line{ line }, m_file{ std::move(file) }, m_whatBuffer{}
+{
 	GenerateWhatBuffer();
 }
 
-void GenericException::GenerateWhatBuffer() noexcept {
-	std::ostringstream oss;
-	oss << GetType() << "\n"
-		<< m_errorText << "\n"
-		<< GetOriginString();
-	m_whatBuffer = oss.str();
+void Exception::GenerateWhatBuffer() noexcept
+{
+	m_whatBuffer = std::format("{}\n{}", GetType(), GetOriginString());
 }
 
-const char* GenericException::what() const noexcept {
-	return m_whatBuffer.c_str();
+std::string Exception::GetOriginString() const noexcept
+{
+	return std::format("[File] {}\n[Line] {}", m_file, m_line);
 }
 
-const char* GenericException::GetType() const noexcept {
-	return "GenericException";
+GenericException::GenericException(std::int32_t line, std::string file, std::string errorText)
+	: Exception{ line, std::move(file) }, m_errorText{ std::move(errorText) }
+{
+	GenerateWhatBuffer();
+}
+
+void GenericException::GenerateWhatBuffer() noexcept
+{
+	m_whatBuffer = std::format("{}\n{}\n{}", GetType(), m_errorText, GetOriginString());
 }

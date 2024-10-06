@@ -3,44 +3,46 @@
 #include <exception>
 #include <string>
 
-class Exception : public std::exception {
+class Exception : public std::exception
+{
 public:
-	Exception(int line, const char* file) noexcept;
+	Exception(std::int32_t line, std::string file);
 
 	[[nodiscard]]
-	virtual const char* GetType() const noexcept;
-	// Call it in the end child's constructor
-	virtual void GenerateWhatBuffer() noexcept;
+	const char* what() const noexcept override { return m_whatBuffer.c_str(); }
 
+protected:
 	[[nodiscard]]
-	const char* what() const noexcept override;
+	std::int32_t GetLine() const noexcept { return m_line; }
 	[[nodiscard]]
-	int GetLine() const noexcept;
-	[[nodiscard]]
-	const std::string& GetFile() const noexcept;
+	std::string GetFile() const noexcept { return m_file; }
 	[[nodiscard]]
 	std::string GetOriginString() const noexcept;
 
 private:
-	int m_line;
-	std::string m_file;
+	[[nodiscard]]
+	const char* GetType() const noexcept { return "Exception"; }
+
+	void GenerateWhatBuffer() noexcept;
+
+private:
+	std::int32_t m_line;
+	std::string  m_file;
 
 protected:
-	std::string m_whatBuffer;
+	std::string  m_whatBuffer;
 };
 
-class GenericException final : public Exception {
+class GenericException final : public Exception
+{
 public:
-	GenericException(
-		int line, const char* file,
-		const std::string& errorText
-	) noexcept;
+	GenericException(std::int32_t line, std::string file, std::string errorText);
 
+private:
 	[[nodiscard]]
-	const char* what() const noexcept override;
-	[[nodiscard]]
-	const char* GetType() const noexcept override;
-	void GenerateWhatBuffer() noexcept override;
+	const char* GetType() const noexcept { return "GenericException"; }
+
+	void GenerateWhatBuffer() noexcept;
 
 private:
 	std::string m_errorText;

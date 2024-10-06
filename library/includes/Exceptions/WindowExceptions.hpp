@@ -1,24 +1,24 @@
 #ifndef WINDOW_EXCEPTION_HPP_
 #define WINDOW_EXCEPTION_HPP_
-#include <Win32BaseException.hpp>
+#include <Exception.hpp>
 
-class WindowException final : public Win32BaseException {
+class WindowException final : public Exception
+{
 public:
-	WindowException(int line, const char* file, long hr) noexcept;
+	WindowException(std::int32_t line, std::string file, long hr);
+
+private:
+	[[nodiscard]]
+	const char* GetType() const noexcept { return "Window Exception"; }
+	[[nodiscard]]
+	std::string GetErrorString() const noexcept { return TranslateErrorCode(m_hr); }
+
+	void GenerateWhatBuffer() noexcept;
 
 	[[nodiscard]]
-	const char* what() const noexcept override;
-	[[nodiscard]]
-	const char* GetType() const noexcept override;
-	void GenerateWhatBuffer() noexcept override;
+	static std::string TranslateErrorCode(long hr) noexcept;
+
+private:
+	long m_hr;
 };
-
-class NoGfxException final : public Exception {
-public:
-	using Exception::Exception;
-
-	[[nodiscard]]
-	const char* GetType() const noexcept override;
-};
-
 #endif
