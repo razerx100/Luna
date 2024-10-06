@@ -4,7 +4,8 @@
 #include <optional>
 #include <memory>
 
-class Window {
+class Window
+{
 public:
 	virtual ~Window() = default;
 
