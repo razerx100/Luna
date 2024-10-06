@@ -1,4 +1,5 @@
 .vs
 Solution
 *.lib
-*.exp
+out
+/CMakeSettings.json

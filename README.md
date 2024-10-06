@@ -1,8 +1,8 @@
 # Luna
-Window module using Win32. Needs an instance of InputManager to manage inputs from Windows and GraphicsEngine to get in use monitor's co-ordinates.
+Window module using Win32.
 
 ## Instructions
-Run the Setup script to configure the project. The setup script uses the ***Visual Studio 17 2022*** generator for project generation.
+Use the ADD_TEST_LUNA cmake flag to add unit testing.
 
 ## Requirements
 cmake 3.21+.\
