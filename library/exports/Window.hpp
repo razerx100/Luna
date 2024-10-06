@@ -26,7 +26,7 @@ public:
 	[[nodiscard]]
 	virtual bool IsCursorEnabled() const noexcept = 0;
 	[[nodiscard]]
-	virtual bool IsMinimized() const noexcept = 0;
+	virtual bool IsMinimised() const noexcept = 0;
 	[[nodiscard]]
 	virtual float GetAspectRatio() const noexcept = 0;
 	[[nodiscard]]
@@ -34,5 +34,4 @@ public:
 	[[nodiscard]]
 	virtual void* GetModuleInstance() const noexcept = 0;
 };
-
 #endif

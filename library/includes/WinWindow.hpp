@@ -6,37 +6,53 @@
 #include <InputManager.hpp>
 #include <Renderer.hpp>
 
-class WinWindow final : public Window {
-	class WindowClass {
+class WinWindow final : public Window
+{
+	class WindowClass
+	{
 	public:
-		WindowClass() noexcept;
+		WindowClass();
 		~WindowClass() noexcept;
 
-		WindowClass(const WindowClass&) = delete;
-		WindowClass& operator=(const WindowClass&) = delete;
+		[[nodiscard]]
+		static const char* GetName() noexcept { return s_wndClassName; }
 
-		const char* GetName() noexcept;
 		void Register() noexcept;
 
 		[[nodiscard]]
-		HINSTANCE GetHInstance() const noexcept;
+		HINSTANCE GetHInstance() const noexcept { return m_wndClass.hInstance; }
 
 	private:
-		static constexpr const char* wndClassName = "Luna";
 		WNDCLASSEX m_wndClass;
+
+		static constexpr const char* s_wndClassName = "Luna";
+
+	public:
+		WindowClass(const WindowClass&) = delete;
+		WindowClass& operator=(const WindowClass&) = delete;
+
+		WindowClass(WindowClass&& other) noexcept
+			: m_wndClass{ other.m_wndClass }
+		{
+			other.m_wndClass.hInstance = nullptr;
+		}
+		WindowClass& operator=(WindowClass&& other) noexcept
+		{
+			m_wndClass                 = other.m_wndClass;
+			other.m_wndClass.hInstance = nullptr;
+
+			return *this;
+		}
 	};
 
 public:
 	WinWindow(std::uint32_t width, std::uint32_t height, const char* name);
 	~WinWindow() noexcept override;
 
-	WinWindow(const WinWindow&) = delete;
-	WinWindow& operator=(const WinWindow&) = delete;
-
 	[[nodiscard]]
 	bool IsCursorEnabled() const noexcept override;
 	[[nodiscard]]
-	bool IsMinimized() const noexcept override;
+	bool IsMinimised() const noexcept override;
 	[[nodiscard]]
 	float GetAspectRatio() const noexcept override;
 	[[nodiscard]]
@@ -80,22 +96,58 @@ private:
 
 private:
 	std::shared_ptr<InputManager> m_pInputManager;
-	std::shared_ptr<Renderer> m_pRenderer;
+	std::shared_ptr<Renderer>     m_pRenderer;
 
-private:
-	std::uint32_t m_width;
-	std::uint32_t m_height;
-	HWND m_hWnd;
-
-	bool m_fullScreenMode;
-	DWORD m_windowStyle;
-	RECT m_windowRect;
-	WindowClass m_windowClass;
-
-	bool m_cursorEnabled;
-	bool m_isMinimized;
+	std::uint32_t             m_width;
+	std::uint32_t             m_height;
+	HWND                      m_hWnd;
+	RECT                      m_windowRect;
+	WindowClass               m_windowClass;
 	std::vector<std::uint8_t> m_rawInputBuffer;
-	bool m_multimonitor;
+	DWORD                     m_windowStyle;
+	bool                      m_fullScreenMode;
+	bool                      m_cursorEnabled;
+	bool                      m_isMinimised;
+	bool                      m_multimonitor;
+
+public:
+	WinWindow(const WinWindow&) = delete;
+	WinWindow& operator=(const WinWindow&) = delete;
+
+	WinWindow(WinWindow&& other) noexcept
+		: m_pInputManager{ std::move(other.m_pInputManager) },
+		m_pRenderer{ std::move(other.m_pRenderer) },
+		m_width{ other.m_width },
+		m_height{ other.m_height },
+		m_hWnd{ std::exchange(other.m_hWnd, nullptr) },
+		m_windowRect{ other.m_windowRect },
+		m_windowClass{ std::move(other.m_windowClass) },
+		m_rawInputBuffer{ std::move(other.m_rawInputBuffer) },
+		m_windowStyle{ other.m_windowStyle },
+		m_fullScreenMode{ other.m_fullScreenMode },
+		m_cursorEnabled{ other.m_cursorEnabled },
+		m_isMinimised{ other.m_isMinimised },
+		m_multimonitor{ other.m_multimonitor }
+	{}
+	WinWindow& operator=(WinWindow&& other) noexcept
+	{
+		m_pInputManager  = std::move(other.m_pInputManager);
+		m_pRenderer      = std::move(other.m_pRenderer);
+		m_width          = other.m_width;
+		m_height         = other.m_height;
+		m_hWnd           = std::exchange(other.m_hWnd, nullptr);
+		m_windowRect     = other.m_windowRect;
+		m_windowClass    = std::move(other.m_windowClass);
+		m_rawInputBuffer = std::move(other.m_rawInputBuffer);
+		m_windowStyle    = other.m_windowStyle;
+		m_fullScreenMode = other.m_fullScreenMode;
+		m_cursorEnabled  = other.m_cursorEnabled;
+		m_isMinimised    = other.m_isMinimised;
+		m_multimonitor   = other.m_multimonitor;
+
+
+		return *this;
+	}
 };
 
 [[nodiscard]]

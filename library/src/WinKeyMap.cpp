@@ -1,4 +1,6 @@
 #include <bitset>
+#include <array>
+#include <concepts>
 #include <IGamepad.hpp>
 #include <IMouse.hpp>
 #include <InputManager.hpp>
@@ -8,7 +10,8 @@
 
 using enum SKeyCodes;
 
-static const SKeyCodes WinKeyMap[] = {
+static constexpr std::array WinKeyMap
+{
 	Default, Default, Default, Default, Default, Default, Default, Default,
 	BackSpace, Tab,
 	Default, Default, Default,
@@ -64,11 +67,13 @@ static const SKeyCodes WinKeyMap[] = {
 	Default, Default, Default
 };
 
-SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept {
+SKeyCodes GetSKeyCodes(std::uint16_t nativeKeycode) noexcept
+{
 	return WinKeyMap[nativeKeycode];
 }
 
-static const std::uint16_t pressChecks[] = {
+static constexpr std::array pressChecks
+{
 	RI_MOUSE_BUTTON_1_DOWN,
 	RI_MOUSE_BUTTON_2_DOWN,
 	RI_MOUSE_BUTTON_3_DOWN,
@@ -76,7 +81,8 @@ static const std::uint16_t pressChecks[] = {
 	RI_MOUSE_BUTTON_5_DOWN
 };
 
-static const std::uint16_t releaseChecks[] = {
+static constexpr std::array releaseChecks
+{
 	RI_MOUSE_BUTTON_1_UP,
 	RI_MOUSE_BUTTON_2_UP,
 	RI_MOUSE_BUTTON_3_UP,
@@ -84,30 +90,34 @@ static const std::uint16_t releaseChecks[] = {
 	RI_MOUSE_BUTTON_5_UP
 };
 
+template<std::integral T, size_t ArraySize>
 [[nodiscard]]
 static std::uint16_t MapBit(
-	std::uint16_t state, std::uint16_t const* checks, size_t index
+	size_t state, const std::array<T, ArraySize>& checks, size_t index
 ) noexcept {
-	size_t check = checks[index];
+	const auto check = static_cast<size_t>(checks[index]);
 
-	return ((state & check) == check) << index;
+	return static_cast<std::uint16_t>(((state & check) == check) << index);
 }
 
-std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(std::uint16_t newState) noexcept {
-	std::uint8_t pressFlags = 0u;
+std::pair<std::uint8_t, std::uint8_t> ProcessMouseRawButtons(std::uint16_t newState) noexcept
+{
+	std::uint8_t pressFlags   = 0u;
 	std::uint8_t releaseFlags = 0u;
 
-	static constexpr auto mouseButtonCount = static_cast<size_t>(MouseButtons::Invalid);
+	constexpr auto mouseButtonCount = static_cast<size_t>(MouseButtons::Invalid);
 
-	for (size_t index = 0u; index < mouseButtonCount; ++index) {
-		pressFlags |= MapBit(newState, pressChecks, index);
+	for (size_t index = 0u; index < mouseButtonCount; ++index)
+	{
+		pressFlags   |= MapBit(newState, pressChecks, index);
 		releaseFlags |= MapBit(newState, releaseChecks, index);
 	}
 
 	return { pressFlags, releaseFlags };
 }
 
-static const std::uint16_t gamepadButtonChecks[] = {
+static constexpr std::array gamepadButtonChecks
+{
 	XINPUT_GAMEPAD_DPAD_UP,
 	XINPUT_GAMEPAD_DPAD_DOWN,
 	XINPUT_GAMEPAD_DPAD_LEFT,
@@ -124,10 +134,12 @@ static const std::uint16_t gamepadButtonChecks[] = {
 	XINPUT_GAMEPAD_Y
 };
 
-std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept {
+std::uint16_t ProcessGamepadRawButtons(std::uint16_t state) noexcept
+{
 	std::uint16_t buttonFlags = 0u;
 
-	static constexpr auto gamepadButtonCount = static_cast<size_t>(XBoxButton::Invalid);
+	constexpr auto gamepadButtonCount = static_cast<size_t>(XBoxButton::Invalid);
+
 	for (size_t index = 0u; index < gamepadButtonCount; ++index)
 		buttonFlags |= MapBit(state, gamepadButtonChecks, index);
 
