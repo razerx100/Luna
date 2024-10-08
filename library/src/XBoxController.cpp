@@ -42,7 +42,7 @@ void CheckXBoxControllerStates(InputManager* inputManager) noexcept
 	{
 		if (XInputGetState(gamepadIndex, &state) == ERROR_SUCCESS)
 		{
-			IGamepad& gamepad           = inputManager->GetGamepad(gamepadIndex);
+			Gamepad& gamepad            = inputManager->GetGamepad(gamepadIndex);
 
 			const XINPUT_GAMEPAD& xData = state.Gamepad;
 

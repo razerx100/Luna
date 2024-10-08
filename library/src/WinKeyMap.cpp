@@ -1,8 +1,8 @@
 #include <bitset>
 #include <array>
 #include <concepts>
-#include <IGamepad.hpp>
-#include <IMouse.hpp>
+#include <Gamepad.hpp>
+#include <Mouse.hpp>
 #include <InputManager.hpp>
 #include <CleanWin.hpp>
 #include <WinWindow.hpp>

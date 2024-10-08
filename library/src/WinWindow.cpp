@@ -184,7 +184,7 @@ LRESULT WinWindow::HandleMsg(
 			std::uint16_t xCoord = LOWORD(lParam);
 			std::uint16_t yCoord = HIWORD(lParam);
 
-			IMouse& mouse = m_pInputManager->GetMouse();
+			Mouse& mouse = m_pInputManager->GetMouse();
 			mouse.SetCurrentCursorCoord(xCoord, yCoord);
 		}
 
@@ -218,7 +218,7 @@ LRESULT WinWindow::HandleMsg(
 
 		if (rawHeader.dwType == RIM_TYPEMOUSE)
 		{
-			IMouse& mouse = m_pInputManager->GetMouse();
+			Mouse& mouse = m_pInputManager->GetMouse();
 
 			const RAWMOUSE& rawMouse = rawInput->data.mouse;
 
@@ -267,7 +267,7 @@ LRESULT WinWindow::HandleMsg(
 		}
 		else if (rawHeader.dwType == RIM_TYPEKEYBOARD)
 		{
-			IKeyboard& keyboard = m_pInputManager->GetKeyboard();
+			Keyboard& keyboard = m_pInputManager->GetKeyboard();
 
 			const RAWKEYBOARD& rawKeyboard = rawInput->data.keyboard;
 
@@ -551,7 +551,7 @@ void WinWindow::SetInputManager(std::shared_ptr<InputManager> ioMan)
 
 	for (size_t index = 0u; index < gamepadCount; ++index)
 	{
-		IGamepad& gamepad = m_pInputManager->GetGamepad(index);
+		Gamepad& gamepad = m_pInputManager->GetGamepad(index);
 
 		if (!gamepad.GetLeftThumbStickDeadZone())
 			gamepad.SetLeftThumbStickDeadZone(XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);

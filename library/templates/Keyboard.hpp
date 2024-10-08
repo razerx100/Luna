@@ -1,8 +1,9 @@
-#ifndef I_KEYBOARD_HPP_
-#define I_KEYBOARD_HPP_
+#ifndef KEYBOARD_HPP_
+#define KEYBOARD_HPP_
 #include <optional>
 
-enum class SKeyCodes {
+enum class SKeyCodes
+{
 	Default,
 	BackSpace,
 	Tab,
@@ -47,50 +48,58 @@ enum class SKeyCodes {
 	QuoteUS
 };
 
-class IKeyboard {
+class Keyboard
+{
 public:
-	class Event {
+	class Event
+	{
 	public:
-		enum class Type {
+		enum class Type
+		{
 			Press,
 			Release,
 			Invalid
 		};
 
 	private:
-		Type m_type;
+		Type      m_type;
 		SKeyCodes m_code;
 
 	public:
-		Event() noexcept
-			: m_type(Type::Invalid), m_code(SKeyCodes::Default) {}
-		Event(Type type, SKeyCodes code) noexcept
-			: m_type(type), m_code(code) {}
-
+		Event()
+			: m_type{ Type::Invalid }, m_code{ SKeyCodes::Default }
+		{}
+		Event(Type type, SKeyCodes code)
+			: m_type{ type }, m_code{ code }
+		{}
 
 		[[nodiscard]]
-		bool IsPress() const noexcept {
+		bool IsPress() const noexcept
+		{
 			return m_type == Type::Press;
 		}
 
 		[[nodiscard]]
-		bool IsRelease() const noexcept {
+		bool IsRelease() const noexcept
+		{
 			return m_type == Type::Release;
 		}
 
 		[[nodiscard]]
-		bool IsValid() const noexcept {
+		bool IsValid() const noexcept
+		{
 			return m_type != Type::Invalid;
 		}
 
 		[[nodiscard]]
-		SKeyCodes GetCode() const noexcept {
+		SKeyCodes GetCode() const noexcept
+		{
 			return m_code;
 		}
 	};
 
 public:
-	virtual ~IKeyboard() = default;
+	virtual ~Keyboard() = default;
 
 	// key events
 	[[nodiscard]]
