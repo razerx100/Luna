@@ -45,6 +45,12 @@ class WinWindow final : public Window
 		}
 	};
 
+	struct CallbackData
+	{
+		void(*callback)(void*, std::uint32_t, std::uint64_t, std::uint64_t, void*);
+		void* extraData;
+	};
+
 public:
 	WinWindow(std::uint32_t width, std::uint32_t height, const char* name);
 	~WinWindow() noexcept override;
@@ -71,6 +77,11 @@ public:
 	void ConfineCursor() noexcept override;
 	void FreeCursor() noexcept override;
 	void UpdateIndependentInputs() const noexcept override;
+
+	void AddInputCallback(
+		void(*callback)(void*, std::uint32_t, std::uint64_t, std::uint64_t, void*),
+		void* extraData = nullptr
+	) noexcept override;
 
 	[[nodiscard]]
 	std::optional<int> Update() override;
@@ -100,6 +111,7 @@ private:
 
 	std::uint32_t             m_width;
 	std::uint32_t             m_height;
+	std::vector<CallbackData> m_inputCallbacks;
 	HWND                      m_hWnd;
 	RECT                      m_windowRect;
 	WindowClass               m_windowClass;
@@ -119,6 +131,7 @@ public:
 		m_pRenderer{ std::move(other.m_pRenderer) },
 		m_width{ other.m_width },
 		m_height{ other.m_height },
+		m_inputCallbacks{ std::move(other.m_inputCallbacks) },
 		m_hWnd{ std::exchange(other.m_hWnd, nullptr) },
 		m_windowRect{ other.m_windowRect },
 		m_windowClass{ std::move(other.m_windowClass) },
@@ -135,6 +148,7 @@ public:
 		m_pRenderer      = std::move(other.m_pRenderer);
 		m_width          = other.m_width;
 		m_height         = other.m_height;
+		m_inputCallbacks = std::move(other.m_inputCallbacks);
 		m_hWnd           = std::exchange(other.m_hWnd, nullptr);
 		m_windowRect     = other.m_windowRect;
 		m_windowClass    = std::move(other.m_windowClass);

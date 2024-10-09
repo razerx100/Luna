@@ -3,6 +3,7 @@
 #include <string>
 #include <optional>
 #include <memory>
+#include <cstdint>
 
 class Window
 {
@@ -31,7 +32,14 @@ public:
 	virtual float GetAspectRatio() const noexcept = 0;
 	[[nodiscard]]
 	virtual void* GetWindowHandle() const noexcept = 0;
+
+	// Windows functions
 	[[nodiscard]]
 	virtual void* GetModuleInstance() const noexcept = 0;
+
+	virtual void AddInputCallback(
+		void(*callback)(void*, std::uint32_t, std::uint64_t, std::uint64_t, void*),
+		void* extraData = nullptr
+	) noexcept = 0;
 };
 #endif

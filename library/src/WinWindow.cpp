@@ -33,7 +33,7 @@ void WinWindow::WindowClass::Register() noexcept
 WinWindow::WinWindow(
 	std::uint32_t width, std::uint32_t height, const char* name
 ) : m_pInputManager{}, m_pRenderer{},
-	m_width{ width }, m_height{ height }, m_hWnd{ nullptr },
+	m_width{ width }, m_height{ height }, m_inputCallbacks{}, m_hWnd{ nullptr },
 	m_windowRect{ 0l, 0l, 0l, 0l }, m_windowClass{},
 	m_rawInputBuffer{},
 	m_windowStyle{ WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU },
@@ -103,6 +103,9 @@ LRESULT CALLBACK WinWindow::HandleMsgWrap(
 LRESULT WinWindow::HandleMsg(
 	HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 ) noexcept {
+	for (const CallbackData& callbackData : m_inputCallbacks)
+		callbackData.callback(hWnd, msg, wParam, lParam, callbackData.extraData);
+
 	switch (msg)
 	{
 	case WM_CLOSE:
@@ -131,8 +134,8 @@ LRESULT WinWindow::HandleMsg(
 		if (wParam != SIZE_MINIMIZED)
 		{
 			m_isMinimised = false;
-			m_width  = static_cast<std::uint32_t>(clientRect.right - clientRect.left);
-			m_height = static_cast<std::uint32_t>(clientRect.bottom - clientRect.top);
+			m_width       = static_cast<std::uint32_t>(clientRect.right - clientRect.left);
+			m_height      = static_cast<std::uint32_t>(clientRect.bottom - clientRect.top);
 
 			if (m_pRenderer)
 				m_pRenderer->Resize(m_width, m_height);
@@ -180,7 +183,8 @@ LRESULT WinWindow::HandleMsg(
 	/************* END KEYBOARD MESSAGES *************/
 	case WM_MOUSEMOVE:
 	{
-		if (!m_multimonitor) {
+		if (!m_multimonitor)
+		{
 			std::uint16_t xCoord = LOWORD(lParam);
 			std::uint16_t yCoord = HIWORD(lParam);
 
@@ -502,8 +506,8 @@ void WinWindow::SetWindowIcon(const std::wstring& iconPath)
 {
 	HICON hIcon = LoadIconFromPath(iconPath.c_str());
 
-	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+	SendMessageA(m_hWnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hIcon));
+	SendMessageA(m_hWnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(hIcon));
 }
 
 bool WinWindow::IsMinimised() const noexcept
@@ -603,4 +607,16 @@ bool WinWindow::IsKeyDown(int vKey) const noexcept
 	}keyState{ GetAsyncKeyState(vKey) };
 
 	return keyState._unsigned & 0x8000u;
+}
+
+void WinWindow::AddInputCallback(
+	void(*callback)(void*, std::uint32_t, std::uint64_t, std::uint64_t, void*),
+	void* extraData/* = nullptr */
+) noexcept {
+	m_inputCallbacks.emplace_back(
+		CallbackData{
+			.callback  = callback,
+			.extraData = extraData
+		}
+	);
 }
