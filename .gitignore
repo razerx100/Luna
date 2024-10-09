@@ -1,5 +1,8 @@
 .vs
 Solution
 *.lib
+*.ico
+*.exp
 out
 /CMakeSettings.json
+/CMakePresets.json

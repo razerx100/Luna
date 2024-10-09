@@ -22,8 +22,4 @@ target_include_directories(LunaLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/exports/)
 
 target_compile_definitions(LunaLib PRIVATE BUILD_LUNA)
 
-target_link_libraries(LunaLib PRIVATE
-    Xinput.lib
-)
-
 target_compile_options(LunaLib PRIVATE /fp:fast /MP /Ot /W4 /Gy)
