@@ -79,7 +79,7 @@ public:
 	) noexcept override;
 
 	[[nodiscard]]
-	std::optional<int> Update() override;
+	std::int32_t Update() override;
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(
@@ -100,12 +100,12 @@ private:
 	void SetRawDevices();
 
 private:
-	std::uint32_t             m_width;
-	std::uint32_t             m_height;
 	std::vector<CallbackData> m_inputCallbacks;
 	HWND                      m_hWnd;
-	RECT                      m_windowRect;
+	std::uint32_t             m_width;
+	std::uint32_t             m_height;
 	WindowClass               m_windowClass;
+	RECT                      m_windowRect;
 	DWORD                     m_windowStyle;
 	bool                      m_fullScreenMode;
 	bool                      m_cursorEnabled;
@@ -116,12 +116,12 @@ public:
 	WinWindow& operator=(const WinWindow&) = delete;
 
 	WinWindow(WinWindow&& other) noexcept
-		: m_width{ other.m_width },
-		m_height{ other.m_height },
-		m_inputCallbacks{ std::move(other.m_inputCallbacks) },
+		: m_inputCallbacks{ std::move(other.m_inputCallbacks) },
 		m_hWnd{ std::exchange(other.m_hWnd, nullptr) },
-		m_windowRect{ other.m_windowRect },
+		m_width{ other.m_width },
+		m_height{ other.m_height },
 		m_windowClass{ std::move(other.m_windowClass) },
+		m_windowRect{ other.m_windowRect },
 		m_windowStyle{ other.m_windowStyle },
 		m_fullScreenMode{ other.m_fullScreenMode },
 		m_cursorEnabled{ other.m_cursorEnabled },
@@ -129,12 +129,12 @@ public:
 	{}
 	WinWindow& operator=(WinWindow&& other) noexcept
 	{
-		m_width          = other.m_width;
-		m_height         = other.m_height;
 		m_inputCallbacks = std::move(other.m_inputCallbacks);
 		m_hWnd           = std::exchange(other.m_hWnd, nullptr);
-		m_windowRect     = other.m_windowRect;
+		m_width          = other.m_width;
+		m_height         = other.m_height;
 		m_windowClass    = std::move(other.m_windowClass);
+		m_windowRect     = other.m_windowRect;
 		m_windowStyle    = other.m_windowStyle;
 		m_fullScreenMode = other.m_fullScreenMode;
 		m_cursorEnabled  = other.m_cursorEnabled;

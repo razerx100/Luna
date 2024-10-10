@@ -1,7 +1,6 @@
 #ifndef WINDOW_HPP_
 #define WINDOW_HPP_
 #include <string>
-#include <optional>
 #include <memory>
 #include <cstdint>
 
@@ -13,7 +12,8 @@ public:
 	virtual void SetTitle(const std::string& title) = 0;
 
 	[[nodiscard]]
-	virtual std::optional<int> Update() = 0;
+	// 0 means exited without any errors. 1 means the window is still active.
+	virtual std::int32_t Update() = 0;
 
 	virtual void ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept = 0;
 	virtual void SetWindowIcon(const std::wstring& iconPath) = 0;

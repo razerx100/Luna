@@ -31,30 +31,32 @@ void WinWindow::WindowClass::Register() noexcept
 // Window
 WinWindow::WinWindow(
 	std::uint32_t width, std::uint32_t height, const char* name
-) : m_width{ width }, m_height{ height }, m_inputCallbacks{}, m_hWnd{ nullptr },
-	m_windowRect{ 0l, 0l, 0l, 0l }, m_windowClass{},
+) : m_inputCallbacks{}, m_hWnd{ nullptr },
+	m_width{ width }, m_height{ height },
+	m_windowClass{}, m_windowRect{ 0l, 0l, 0l, 0l },
 	m_windowStyle{ WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU },
 	m_fullScreenMode{ false }, m_cursorEnabled{ true }, m_isMinimised{ false }
 {
 	m_windowClass.Register();
 
-	RECT wr{
-		.left   = 0l,
-		.top    = 0l,
+	RECT windowRect
+	{
+		.left   = 0,
+		.top    = 0,
 		.right  = static_cast<LONG>(width),
 		.bottom = static_cast<LONG>(height)
 	};
 
-	if (!AdjustWindowRect(&wr, m_windowStyle, FALSE))
+	if (!AdjustWindowRect(&windowRect, m_windowStyle, FALSE))
 		throw WIN32_LAST_EXCEPT();
 
 	m_hWnd = CreateWindowExA(
-		0,
+		0ul,
 		m_windowClass.GetName(), name,
 		m_windowStyle,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		static_cast<int>(wr.right - wr.left),
-		static_cast<int>(wr.bottom - wr.top),
+		static_cast<int>(windowRect.right - windowRect.left),
+		static_cast<int>(windowRect.bottom - windowRect.top),
 		nullptr, nullptr, m_windowClass.GetHInstance(), this
 	);
 
@@ -109,11 +111,13 @@ LRESULT WinWindow::HandleMsg(
 	case WM_CLOSE:
 	{
 		DestroyWindow(m_hWnd);
+
 		return 0;
 	}
 	case WM_DESTROY:
 	{
 		PostQuitMessage(0);
+
 		return 0;
 	}
 	case WM_SIZE:
@@ -148,20 +152,21 @@ void WinWindow::SetTitle(const std::string& title)
 		throw WIN32_LAST_EXCEPT();
 }
 
-std::optional<int> WinWindow::Update()
+std::int32_t WinWindow::Update()
 {
 	MSG msg{};
 
 	while (PeekMessageA(&msg, nullptr , 0u, 0u, PM_REMOVE))
 	{
 		if (msg.message == WM_QUIT)
-			return static_cast<int>(msg.wParam);
+			// Should be returning 0 here from the PostQuitMessage function.
+			return static_cast<std::int32_t>(msg.wParam);
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
-	return {};
+	return 1;
 }
 
 void WinWindow::ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept
