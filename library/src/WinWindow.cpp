@@ -31,8 +31,7 @@ void WinWindow::WindowClass::Register() noexcept
 // Window
 WinWindow::WinWindow(
 	std::uint32_t width, std::uint32_t height, const char* name
-) : m_pRenderer{},
-	m_width{ width }, m_height{ height }, m_inputCallbacks{}, m_hWnd{ nullptr },
+) : m_width{ width }, m_height{ height }, m_inputCallbacks{}, m_hWnd{ nullptr },
 	m_windowRect{ 0l, 0l, 0l, 0l }, m_windowClass{},
 	m_windowStyle{ WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU },
 	m_fullScreenMode{ false }, m_cursorEnabled{ true }, m_isMinimised{ false }
@@ -119,20 +118,7 @@ LRESULT WinWindow::HandleMsg(
 	}
 	case WM_SIZE:
 	{
-		RECT clientRect{};
-		GetClientRect(m_hWnd, &clientRect);
-
-		if (wParam != SIZE_MINIMIZED)
-		{
-			m_isMinimised = false;
-			m_width       = static_cast<std::uint32_t>(clientRect.right - clientRect.left);
-			m_height      = static_cast<std::uint32_t>(clientRect.bottom - clientRect.top);
-
-			if (m_pRenderer)
-				m_pRenderer->Resize(m_width, m_height);
-		}
-		else
-			m_isMinimised = true;
+		m_isMinimised = wParam == SIZE_MINIMIZED;
 
 		if (!m_cursorEnabled)
 			ConfineCursor();
@@ -142,22 +128,15 @@ LRESULT WinWindow::HandleMsg(
 	case WM_ACTIVATE:
 	{
 		if (!m_cursorEnabled)
+		{
 			if (wParam & WA_ACTIVE || wParam & WA_CLICKACTIVE)
 				ConfineCursor();
 			else
 				FreeCursor();
+		}
 
 		break;
 	}
-	/************* KEYBOARD MESSAGES *************/
-	case WM_SYSKEYDOWN:
-	{
-		if ((wParam == VK_RETURN) && (lParam & 0x20000000ul)) // 29th bit checks if Alt is down
-			ToggleFullScreenMode();
-
-		break;
-	}
-	/************* END RAW MESSAGES *************/
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -185,7 +164,7 @@ std::optional<int> WinWindow::Update()
 	return {};
 }
 
-void WinWindow::ToggleFullScreenMode()
+void WinWindow::ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept
 {
 	if (m_fullScreenMode)
 	{
@@ -209,32 +188,26 @@ void WinWindow::ToggleFullScreenMode()
 
 		SetWindowLong(
 			m_hWnd, GWL_STYLE,
-			m_windowStyle & ~(
-				WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
-				WS_SYSMENU)
+			m_windowStyle & ~(WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU)
 		);
 
-		// Needed for multi monitor setups
-		if (m_pRenderer)
+		RECT renderingMonitorCoordinate
 		{
-			auto [width, height] = m_pRenderer->GetFirstDisplayCoordinates();
+			.left   = 0,
+			.top    = 0,
+			.right  = static_cast<LONG>(width),
+			.bottom = static_cast<LONG>(height)
+		};
 
-			RECT renderingMonitorCoordinate
-			{
-				.right  = static_cast<LONG>(width),
-				.bottom = static_cast<LONG>(height)
-			};
-
-			SetWindowPos(
-				m_hWnd,
-				HWND_TOPMOST,
-				renderingMonitorCoordinate.left,
-				renderingMonitorCoordinate.top,
-				renderingMonitorCoordinate.right,
-				renderingMonitorCoordinate.bottom,
-				SWP_FRAMECHANGED | SWP_NOACTIVATE
-			);
-		}
+		SetWindowPos(
+			m_hWnd,
+			HWND_TOPMOST,
+			renderingMonitorCoordinate.left,
+			renderingMonitorCoordinate.top,
+			renderingMonitorCoordinate.right,
+			renderingMonitorCoordinate.bottom,
+			SWP_FRAMECHANGED | SWP_NOACTIVATE
+		);
 
 		ShowWindow(m_hWnd, SW_MAXIMIZE);
 	}
@@ -319,11 +292,6 @@ void WinWindow::SetWindowIcon(const std::wstring& iconPath)
 bool WinWindow::IsMinimised() const noexcept
 {
 	return m_isMinimised;
-}
-
-void WinWindow::SetRenderer(std::shared_ptr<Renderer> renderer) noexcept
-{
-	m_pRenderer = std::move(renderer);
 }
 
 void WinWindow::SetRawDevices()

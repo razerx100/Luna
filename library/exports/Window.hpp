@@ -11,12 +11,13 @@ public:
 	virtual ~Window() = default;
 
 	virtual void SetTitle(const std::string& title) = 0;
-	virtual void SetRenderer(std::shared_ptr<class Renderer> renderer) noexcept = 0;
 
 	[[nodiscard]]
 	virtual std::optional<int> Update() = 0;
 
+	virtual void ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept = 0;
 	virtual void SetWindowIcon(const std::wstring& iconPath) = 0;
+
 	virtual void EnableCursor() noexcept = 0;
 	virtual void DisableCursor() noexcept = 0;
 	virtual void ConfineCursor() noexcept = 0;

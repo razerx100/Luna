@@ -3,7 +3,6 @@
 #include <CleanWin.hpp>
 #include <Window.hpp>
 #include <vector>
-#include <Renderer.hpp>
 
 class WinWindow final : public Window
 {
@@ -65,8 +64,8 @@ public:
 	[[nodiscard]]
 	void* GetModuleInstance() const noexcept override;
 
+	void ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept override;
 	void SetTitle(const std::string& title) override;
-	void SetRenderer(std::shared_ptr<Renderer> renderer) noexcept override;
 
 	void SetWindowIcon(const std::wstring& iconPath) override;
 	void EnableCursor() noexcept override;
@@ -95,15 +94,12 @@ private:
 	[[nodiscard]]
 	HICON LoadIconFromPath(const wchar_t* iconPath);
 
-	void ToggleFullScreenMode();
 	void HideCursor() noexcept;
 	void ShowCursor() noexcept;
 
 	void SetRawDevices();
 
 private:
-	std::shared_ptr<Renderer>     m_pRenderer;
-
 	std::uint32_t             m_width;
 	std::uint32_t             m_height;
 	std::vector<CallbackData> m_inputCallbacks;
@@ -120,8 +116,7 @@ public:
 	WinWindow& operator=(const WinWindow&) = delete;
 
 	WinWindow(WinWindow&& other) noexcept
-		: m_pRenderer{ std::move(other.m_pRenderer) },
-		m_width{ other.m_width },
+		: m_width{ other.m_width },
 		m_height{ other.m_height },
 		m_inputCallbacks{ std::move(other.m_inputCallbacks) },
 		m_hWnd{ std::exchange(other.m_hWnd, nullptr) },
@@ -134,7 +129,6 @@ public:
 	{}
 	WinWindow& operator=(WinWindow&& other) noexcept
 	{
-		m_pRenderer      = std::move(other.m_pRenderer);
 		m_width          = other.m_width;
 		m_height         = other.m_height;
 		m_inputCallbacks = std::move(other.m_inputCallbacks);
