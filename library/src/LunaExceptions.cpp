@@ -3,6 +3,12 @@
 #include <ExceptionMessageBox.hpp>
 #include <format>
 
+// This needs to be in the global namespace.
+void ExceptionMessageBox(const char* exceptionDetails, const char* exceptionType
+) {
+	MessageBox(nullptr, exceptionDetails, exceptionType, MB_OK | MB_ICONEXCLAMATION);
+}
+
 namespace Luna
 {
 Exception::Exception(std::int32_t line, std::string file)
@@ -66,10 +72,5 @@ std::string WindowException::TranslateErrorCode(long hr) noexcept
 	LocalFree(msgBuffer);
 
 	return errorString;
-}
-
-void ExceptionMessageBox(const char* exceptionDetails, const char* exceptionType
-) {
-	MessageBox(nullptr, exceptionDetails, exceptionType, MB_OK | MB_ICONEXCLAMATION);
 }
 }
