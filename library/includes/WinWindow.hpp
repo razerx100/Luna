@@ -4,6 +4,8 @@
 #include <Window.hpp>
 #include <vector>
 
+namespace Luna
+{
 class WinWindow final : public Window
 {
 	class WindowClass
@@ -143,4 +145,5 @@ public:
 		return *this;
 	}
 };
+}
 #endif

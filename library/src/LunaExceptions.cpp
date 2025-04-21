@@ -3,6 +3,8 @@
 #include <ExceptionMessageBox.hpp>
 #include <format>
 
+namespace Luna
+{
 Exception::Exception(std::int32_t line, std::string file)
 	: m_line{ line }, m_file{ std::move(file) }, m_whatBuffer{}
 {
@@ -69,4 +71,5 @@ std::string WindowException::TranslateErrorCode(long hr) noexcept
 void ExceptionMessageBox(const char* exceptionDetails, const char* exceptionType
 ) {
 	MessageBox(nullptr, exceptionDetails, exceptionType, MB_OK | MB_ICONEXCLAMATION);
+}
 }

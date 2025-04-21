@@ -3,6 +3,8 @@
 #include <exception>
 #include <string>
 
+namespace Luna
+{
 class Exception : public std::exception
 {
 public:
@@ -67,4 +69,5 @@ private:
 private:
 	long m_hr;
 };
+}
 #endif

@@ -10,5 +10,5 @@ namespace Constants
 
 TEST(WindowTest, WinWindowTest)
 {
-	WinWindow window{ Constants::width, Constants::height, Constants::appName };
+	Luna::WinWindow window{ Constants::width, Constants::height, Constants::appName };
 }

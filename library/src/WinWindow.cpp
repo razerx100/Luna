@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <hidusage.h>
 
+namespace Luna
+{
 WinWindow::WindowClass::WindowClass()
 	: m_wndClass{
 		.cbSize        = static_cast<UINT>(sizeof(m_wndClass)),
@@ -341,4 +343,5 @@ void WinWindow::AddInputCallback(
 			.extraData = extraData
 		}
 	);
+}
 }
