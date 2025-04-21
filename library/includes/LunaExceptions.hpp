@@ -1,5 +1,5 @@
-#ifndef EXCEPTION_HPP_
-#define EXCEPTION_HPP_
+#ifndef LUNA_EXCEPTION_HPP_
+#define LUNA_EXCEPTION_HPP_
 #include <exception>
 #include <string>
 
@@ -46,5 +46,25 @@ private:
 
 private:
 	std::string m_errorText;
+};
+
+class WindowException final : public Exception
+{
+public:
+	WindowException(std::int32_t line, std::string file, long hr);
+
+private:
+	[[nodiscard]]
+	const char* GetType() const noexcept { return "Window Exception"; }
+	[[nodiscard]]
+	std::string GetErrorString() const noexcept { return TranslateErrorCode(m_hr); }
+
+	void GenerateWhatBuffer() noexcept;
+
+	[[nodiscard]]
+	static std::string TranslateErrorCode(long hr) noexcept;
+
+private:
+	long m_hr;
 };
 #endif
