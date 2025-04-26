@@ -344,4 +344,9 @@ void WinWindow::AddInputCallback(
 		}
 	);
 }
+
+void WinWindow::RemoveAllCallbacks() noexcept
+{
+	m_inputCallbacks = std::vector<CallbackData>{};
+}
 }

@@ -80,6 +80,8 @@ public:
 		void* extraData = nullptr
 	) noexcept;
 
+	void RemoveAllCallbacks() noexcept;
+
 	[[nodiscard]]
 	std::int32_t Update();
 
