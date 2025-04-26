@@ -6,10 +6,6 @@ add_executable(LunaTest
     ${SRC}
 )
 
-target_include_directories(LunaTest PRIVATE ${LUNA_PRIVATE_INCLUDES})
-
-unset(LUNA_PRIVATE_INCLUDES)
-
 target_compile_options(LunaTest PRIVATE /fp:fast /MP /Ot /W4 /Gy /std:c++20 /Zc:__cplusplus)
 
 include(FetchContent)

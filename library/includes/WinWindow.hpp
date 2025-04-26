@@ -1,12 +1,12 @@
 #ifndef WIN_WINDOW_HPP_
 #define WIN_WINDOW_HPP_
 #include <CleanWin.hpp>
-#include <Window.hpp>
+#include <string>
 #include <vector>
 
 namespace Luna
 {
-class WinWindow final : public Window
+class WinWindow
 {
 	class WindowClass
 	{
@@ -53,35 +53,35 @@ class WinWindow final : public Window
 
 public:
 	WinWindow(std::uint32_t width, std::uint32_t height, const char* name);
-	~WinWindow() noexcept override;
+	~WinWindow() noexcept;
 
 	[[nodiscard]]
-	bool IsCursorEnabled() const noexcept override;
+	bool IsCursorEnabled() const noexcept;
 	[[nodiscard]]
-	bool IsMinimised() const noexcept override;
+	bool IsMinimised() const noexcept;
 	[[nodiscard]]
-	float GetAspectRatio() const noexcept override;
+	float GetAspectRatio() const noexcept;
 	[[nodiscard]]
-	void* GetWindowHandle() const noexcept override;
+	void* GetWindowHandle() const noexcept;
 	[[nodiscard]]
-	void* GetModuleInstance() const noexcept override;
+	void* GetModuleInstance() const noexcept;
 
-	void ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept override;
-	void SetTitle(const std::string& title) override;
+	void ToggleFullscreen(std::uint32_t width, std::uint32_t height) noexcept;
+	void SetTitle(const std::string& title);
 
-	void SetWindowIcon(const std::wstring& iconPath) override;
-	void EnableCursor() noexcept override;
-	void DisableCursor() noexcept override;
-	void ConfineCursor() noexcept override;
-	void FreeCursor() noexcept override;
+	void SetWindowIcon(const std::wstring& iconPath);
+	void EnableCursor() noexcept;
+	void DisableCursor() noexcept;
+	void ConfineCursor() noexcept;
+	void FreeCursor() noexcept;
 
 	void AddInputCallback(
 		void(*callback)(void*, std::uint32_t, std::uint64_t, std::uint64_t, void*),
 		void* extraData = nullptr
-	) noexcept override;
+	) noexcept;
 
 	[[nodiscard]]
-	std::int32_t Update() override;
+	std::int32_t Update();
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(
